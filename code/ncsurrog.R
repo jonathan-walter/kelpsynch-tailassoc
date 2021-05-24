@@ -6,7 +6,7 @@
 #grDevices
 
 #Another function which is a needed:
-source("alignranks.R")
+source("./code/alignranks.R")
 
 #This function takes a bunch of time series measured at the same
 #times in different locations and creates surrogate datasets which

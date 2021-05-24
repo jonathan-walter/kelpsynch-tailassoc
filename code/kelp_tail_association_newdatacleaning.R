@@ -13,17 +13,17 @@ library(Matrix)
 library(grDevices)
 library(rgdal)
 
-setwd("/Users/jonathanwalter/GitHub/kelp-synchrony/TailAssociation")
+setwd("/Users/jonathanwalter/GitHub/kelpsynch-tailassoc")
 
-source("partialSpearman.R")
-source("ncsurrog.R")
+source("./code/partialSpearman.R")
+source("./code/ncsurrog.R")
 
-kelp.raw<-as.matrix(read.csv("Kelp_Annual_CleanedBasic.csv", header=F))
-no3.raw<-as.matrix(read.csv("NO3_Annual_CleanedBasic.csv", header=F))
-waves.raw<-as.matrix(read.csv("wave_Annual_CleanedBasic.csv",header=F))
-clims.raw<-read.csv("Climind_Annual_CleanedBasic.csv")
-quarters<-read.csv("Quarters_CleanedBasic.csv")
-locs<-read.csv("Locs_CleanedBasic.csv")
+kelp.raw<-as.matrix(read.csv("./data/Kelp_Annual_CleanedBasic.csv", header=F))
+no3.raw<-as.matrix(read.csv("./data/NO3_Annual_CleanedBasic.csv", header=F))
+waves.raw<-as.matrix(read.csv("./data/wave_Annual_CleanedBasic.csv",header=F))
+clims.raw<-read.csv("./data/Climind_Annual_CleanedBasic.csv")
+quarters<-read.csv("./data/Quarters_CleanedBasic.csv")
+locs<-read.csv("./data/Locs_CleanedBasic.csv")
 
 #detrend the data
 kelp<-kelp.raw
@@ -47,10 +47,10 @@ locs$Region<-rep(NA,nrow(locs))
 locs$Region[1:242]<-1
 locs$Region[243:nrow(locs)]<-2
 
-pdf("locs_by_cluster.pdf")
-plot(locs$Lon, locs$Lat, col=locs$Region, pch=19, cex=0.2)
-legend("topright",pch=19,col=1:2,legend=c("Central","Southern"))
-dev.off()
+# pdf("locs_by_cluster.pdf")
+# plot(locs$Lon, locs$Lat, col=locs$Region, pch=19, cex=0.2)
+# legend("topright",pch=19,col=1:2,legend=c("Central","Southern"))
+# dev.off()
 
 
 lb<-c(0,0.5)
@@ -128,16 +128,16 @@ sncf.ub<-splineFit(geog.dist, cormat.ub.filt, quantiles=c(0.025,0.5,0.975))
 # #lines(sncf.lb$emp.spline$x,sncf.ub$spline.quantiles[2,], col="blue", lty=2)
 # lines(sncf.ub$emp.spline$x,sncf.ub$spline.quantiles[3,], col="blue", lty=3)
 
-pdf("dist_decay_allsites.pdf")
-plot(sncf.lb$emp.spline$x, sncf.lb$emp.spline$y, col="red", type="l", ylim=c(0,0.4), lwd=2,
-     xlab="Distance (km)", ylab="Partial Spearman correlation", main="All coastline segments")
-lines(sncf.lb$emp.spline$x, sncf.lb$spline.quantiles[1,], col="red", lty=3)
-lines(sncf.lb$emp.spline$x, sncf.lb$spline.quantiles[3,], col="red", lty=3)
-lines(sncf.ub$emp.spline$x, sncf.ub$emp.spline$y, col="blue", lwd=2)
-lines(sncf.ub$emp.spline$x, sncf.ub$spline.quantiles[1,], col="blue", lty=3)
-lines(sncf.ub$emp.spline$x, sncf.ub$spline.quantiles[3,], col="blue", lty=3)
-legend("topright",lty=1,col=c("red","blue"),legend=c("lower","upper"))
-dev.off()
+# pdf("dist_decay_allsites.pdf")
+# plot(sncf.lb$emp.spline$x, sncf.lb$emp.spline$y, col="red", type="l", ylim=c(0,0.4), lwd=2,
+#      xlab="Distance (km)", ylab="Partial Spearman correlation", main="All coastline segments")
+# lines(sncf.lb$emp.spline$x, sncf.lb$spline.quantiles[1,], col="red", lty=3)
+# lines(sncf.lb$emp.spline$x, sncf.lb$spline.quantiles[3,], col="red", lty=3)
+# lines(sncf.ub$emp.spline$x, sncf.ub$emp.spline$y, col="blue", lwd=2)
+# lines(sncf.ub$emp.spline$x, sncf.ub$spline.quantiles[1,], col="blue", lty=3)
+# lines(sncf.ub$emp.spline$x, sncf.ub$spline.quantiles[3,], col="blue", lty=3)
+# legend("topright",lty=1,col=c("red","blue"),legend=c("lower","upper"))
+# dev.off()
 
 
 
@@ -171,46 +171,46 @@ sncf.ub.c2<-splineFit(geog.dist[locs$Region==2,locs$Region==2], cormat.ub.c2, qu
 # #lines(sncf.lb$emp.spline$x,sncf.ub$spline.quantiles[2,], col="blue", lty=2)
 # lines(sncf.ub.c1$emp.spline$x,sncf.ub.c1$spline.quantiles[3,], col="blue", lty=3)
 
-pdf("dist_decay_central.pdf")
-plot(sncf.lb.c1$emp.spline$x, sncf.lb.c1$emp.spline$y, col="red", type="l", ylim=c(0,0.4), lwd=2,
-     xlab="Distance (km)", ylab="Partial Spearman correlation", main="Central California (c1)")
-lines(sncf.lb.c1$emp.spline$x, sncf.lb.c1$spline.quantiles[1,], col="red", lty=3)
-lines(sncf.lb.c1$emp.spline$x, sncf.lb.c1$spline.quantiles[3,], col="red", lty=3)
-lines(sncf.ub.c1$emp.spline$x, sncf.ub.c1$emp.spline$y, col="blue", lwd=2)
-lines(sncf.ub.c1$emp.spline$x, sncf.ub.c1$spline.quantiles[1,], col="blue", lty=3)
-lines(sncf.ub.c1$emp.spline$x, sncf.ub.c1$spline.quantiles[3,], col="blue", lty=3)
-legend("topright",lty=1,col=c("red","blue"),legend=c("lower","upper"))
-dev.off()
+# pdf("dist_decay_central.pdf")
+# plot(sncf.lb.c1$emp.spline$x, sncf.lb.c1$emp.spline$y, col="red", type="l", ylim=c(0,0.4), lwd=2,
+#      xlab="Distance (km)", ylab="Partial Spearman correlation", main="Central California (c1)")
+# lines(sncf.lb.c1$emp.spline$x, sncf.lb.c1$spline.quantiles[1,], col="red", lty=3)
+# lines(sncf.lb.c1$emp.spline$x, sncf.lb.c1$spline.quantiles[3,], col="red", lty=3)
+# lines(sncf.ub.c1$emp.spline$x, sncf.ub.c1$emp.spline$y, col="blue", lwd=2)
+# lines(sncf.ub.c1$emp.spline$x, sncf.ub.c1$spline.quantiles[1,], col="blue", lty=3)
+# lines(sncf.ub.c1$emp.spline$x, sncf.ub.c1$spline.quantiles[3,], col="blue", lty=3)
+# legend("topright",lty=1,col=c("red","blue"),legend=c("lower","upper"))
+# dev.off()
 
-pdf("dist_decay_southern.pdf")
-plot(sncf.lb.c2$emp.spline$x, sncf.lb.c2$emp.spline$y, col="red", type="l", ylim=c(0,0.4), lwd=2,
-     xlab="Distance (km)", ylab="Partial Spearman correlation", main="Southern California (c2)")
-lines(sncf.lb.c2$emp.spline$x, sncf.lb.c2$spline.quantiles[1,], col="red", lty=3)
-lines(sncf.lb.c2$emp.spline$x, sncf.lb.c2$spline.quantiles[3,], col="red", lty=3)
-lines(sncf.ub.c2$emp.spline$x, sncf.ub.c2$emp.spline$y, col="blue", lwd=2)
-lines(sncf.ub.c2$emp.spline$x, sncf.ub.c2$spline.quantiles[1,], col="blue", lty=3)
-lines(sncf.ub.c2$emp.spline$x, sncf.ub.c2$spline.quantiles[3,], col="blue", lty=3)
-legend("topright",lty=1,col=c("red","blue"),legend=c("lower","upper"))
-dev.off()
+# pdf("dist_decay_southern.pdf")
+# plot(sncf.lb.c2$emp.spline$x, sncf.lb.c2$emp.spline$y, col="red", type="l", ylim=c(0,0.4), lwd=2,
+#      xlab="Distance (km)", ylab="Partial Spearman correlation", main="Southern California (c2)")
+# lines(sncf.lb.c2$emp.spline$x, sncf.lb.c2$spline.quantiles[1,], col="red", lty=3)
+# lines(sncf.lb.c2$emp.spline$x, sncf.lb.c2$spline.quantiles[3,], col="red", lty=3)
+# lines(sncf.ub.c2$emp.spline$x, sncf.ub.c2$emp.spline$y, col="blue", lwd=2)
+# lines(sncf.ub.c2$emp.spline$x, sncf.ub.c2$spline.quantiles[1,], col="blue", lty=3)
+# lines(sncf.ub.c2$emp.spline$x, sncf.ub.c2$spline.quantiles[3,], col="blue", lty=3)
+# legend("topright",lty=1,col=c("red","blue"),legend=c("lower","upper"))
+# dev.off()
 
 
 ## visualize differences between upper and lower tails---------------------------------------------
 
 cormat.diff<-cormat.ub.filt-cormat.lb.filt
 
-pdf("hist_kelpsynch_taildiff.pdf")
-hist(cormat.diff[lower.tri(cormat.diff)])
-abline(v=median(cormat.diff[lower.tri(cormat.diff)], na.rm=T), lty=2, col="red")
-dev.off()
+# pdf("hist_kelpsynch_taildiff.pdf")
+# hist(cormat.diff[lower.tri(cormat.diff)])
+# abline(v=median(cormat.diff[lower.tri(cormat.diff)], na.rm=T), lty=2, col="red")
+# dev.off()
 
 mean(cormat.diff[lower.tri(cormat.diff)], na.rm=T)
 
 cormat.diff.nodiag<-cormat.diff
 diag(cormat.diff.nodiag)<-NA
 
-pdf("synchmat_kelp_taildiff.pdf")
-image.plot(cormat.diff.nodiag)
-dev.off()
+# pdf("synchmat_kelp_taildiff.pdf")
+# image.plot(cormat.diff.nodiag)
+# dev.off()
 
 
 
@@ -317,33 +317,33 @@ legtext<-function(breaks, digits=2){
 }
 
 
-pdf("sync_taildiff_25km.pdf")
-plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(coravg.diff.25km,nclasses)$class], cex=0.5,
-     xlab="Longitude", ylab="Latitude", main="mean <=25 km synchrony lower tail - upper tail")
-legend("topright", pch=19, legend=legtext(class_eq_int_sym(coravg.diff.25km,nclasses)$breaks, digits=3),
-       col=pal)
-dev.off()
+# pdf("sync_taildiff_25km.pdf")
+# plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(coravg.diff.25km,nclasses)$class], cex=0.5,
+#      xlab="Longitude", ylab="Latitude", main="mean <=25 km synchrony lower tail - upper tail")
+# legend("topright", pch=19, legend=legtext(class_eq_int_sym(coravg.diff.25km,nclasses)$breaks, digits=3),
+#        col=pal)
+# dev.off()
 
 
-pdf("sync_taildiff_25km_3panel.pdf", width=6.5, height=3)
-
-par(mfrow=c(1,3),mar=c(4.1,4.1,2,1))
-
-plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(coravg.lb.25km,nclasses)$class], cex=0.5,
-     xlab="Longitude", ylab="Latitude", main="lower tail")
-legend("topright", pch=19, legend=legtext(class_eq_int_sym(coravg.lb.25km,nclasses)$breaks, digits=3)
-       , col=pal, cex=0.8)
-plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(coravg.ub.25km,nclasses)$class], cex=0.5,
-     xlab="Longitude", ylab="Latitude", main="upper tail")
-legend("topright", pch=19, legend=legtext(class_eq_int_sym(coravg.ub.25km,nclasses)$breaks, digits=3), 
-       col=pal, cex=0.8)
-
-plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(coravg.diff.25km,nclasses)$class], cex=0.5,
-     xlab="Longitude", ylab="Latitude", main="lower tail - upper tail")
-legend("topright", pch=19, legend=legtext(class_eq_int_sym(coravg.diff.25km,nclasses)$breaks, digits=3)
-       , col=pal, cex=0.8)
-
-dev.off()
+# pdf("sync_taildiff_25km_3panel.pdf", width=6.5, height=3)
+# 
+# par(mfrow=c(1,3),mar=c(4.1,4.1,2,1))
+# 
+# plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(coravg.lb.25km,nclasses)$class], cex=0.5,
+#      xlab="Longitude", ylab="Latitude", main="lower tail")
+# legend("topright", pch=19, legend=legtext(class_eq_int_sym(coravg.lb.25km,nclasses)$breaks, digits=3)
+#        , col=pal, cex=0.8)
+# plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(coravg.ub.25km,nclasses)$class], cex=0.5,
+#      xlab="Longitude", ylab="Latitude", main="upper tail")
+# legend("topright", pch=19, legend=legtext(class_eq_int_sym(coravg.ub.25km,nclasses)$breaks, digits=3), 
+#        col=pal, cex=0.8)
+# 
+# plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(coravg.diff.25km,nclasses)$class], cex=0.5,
+#      xlab="Longitude", ylab="Latitude", main="lower tail - upper tail")
+# legend("topright", pch=19, legend=legtext(class_eq_int_sym(coravg.diff.25km,nclasses)$breaks, digits=3)
+#        , col=pal, cex=0.8)
+# 
+# dev.off()
 
 
 #Tail dependence in environmental relationships
@@ -381,20 +381,20 @@ kelpXwaves.diff<-kelpXwaves.ub-kelpXwaves.lb*kelpXwaves.filt
 kelpXno3.diff<-kelpXno3.ub-kelpXno3.lb*kelpXno3.filt
 kelpXnpgo.diff<-kelpXnpgo.ub-kelpXnpgo.lb*kelpXnpgo.filt
 
-pdf("hist_taildiff_kelpXwaves.pdf")
-hist(kelpXwaves.diff, xlab="lower tail - upper tail")
-abline(v=median(kelpXwaves.diff, na.rm=T), col="red", lty=2)
-dev.off()
+# pdf("hist_taildiff_kelpXwaves.pdf")
+# hist(kelpXwaves.diff, xlab="lower tail - upper tail")
+# abline(v=median(kelpXwaves.diff, na.rm=T), col="red", lty=2)
+# dev.off()
 
-pdf("hist_taildiff_kelpXno3.pdf")
-hist(kelpXno3.diff, xlab="lower tail - upper tail")
-abline(v=median(kelpXno3.diff,na.rm=T), col="red", lty=2)
-dev.off()
-
-pdf("hist_taildiff_kelpXnpgo.pdf")
-hist(kelpXnpgo.diff, xlab="lower tail - upper tail")
-abline(v=median(kelpXnpgo.diff,na.rm=T), col="red", lty=2)
-dev.off()
+# pdf("hist_taildiff_kelpXno3.pdf")
+# hist(kelpXno3.diff, xlab="lower tail - upper tail")
+# abline(v=median(kelpXno3.diff,na.rm=T), col="red", lty=2)
+# dev.off()
+# 
+# pdf("hist_taildiff_kelpXnpgo.pdf")
+# hist(kelpXnpgo.diff, xlab="lower tail - upper tail")
+# abline(v=median(kelpXnpgo.diff,na.rm=T), col="red", lty=2)
+# dev.off()
 
 cor(kelpXwaves.diff, kelpXno3.diff, use="pairwise.complete.obs") #these are slightly positively correlated
 
@@ -402,84 +402,84 @@ cor(kelpXwaves.diff, kelpXnpgo.diff, use="pairwise.complete.obs") #these are mod
 
 cor(kelpXno3.diff, kelpXnpgo.diff, use="pairwise.complete.obs") #these are moderately positively correlated
 
-pdf("map_taildiff_kelpXwaves.pdf")
-plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXwaves.diff,nclasses)$class], cex=0.5,
-     xlab="Longitude", ylab="Latitude", main="Waves lower tail - upper tail")
-legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXwaves.diff,nclasses)$breaks),
-       col=pal)
-dev.off()
+# pdf("map_taildiff_kelpXwaves.pdf")
+# plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXwaves.diff,nclasses)$class], cex=0.5,
+#      xlab="Longitude", ylab="Latitude", main="Waves lower tail - upper tail")
+# legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXwaves.diff,nclasses)$breaks),
+#        col=pal)
+# dev.off()
 
 
-pdf("map_taildiff_kelpXwaves_3panel.pdf", width=6.5, height=3)
-
-par(mfrow=c(1,3),mar=c(4.1,4.1,2,1))
-
-plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXwaves.lb*kelpXwaves.filt,nclasses)$class], cex=0.5,
-     xlab="Longitude", ylab="Latitude", main="lower tail")
-legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXwaves.lb*kelpXwaves.filt,nclasses)$breaks), col=pal, cex=0.8)
-
-plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXwaves.ub*kelpXwaves.filt,nclasses)$class], cex=0.5,
-     xlab="Longitude", ylab="Latitude", main="upper tail")
-legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXwaves.ub*kelpXwaves.filt,nclasses)$breaks), col=pal, cex=0.8)
-
-plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXwaves.diff,nclasses)$class], cex=0.5,
-     xlab="Longitude", ylab="Latitude", main="lower tail - upper tail")
-legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXwaves.diff*kelpXwaves.filt,nclasses)$breaks), col=pal, cex=0.8)
-dev.off()
-
-
-pdf("map_taildiff_kelpXno3.pdf")
-plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXno3.diff,nclasses)$class], cex=0.5,
-     xlab="Longitude", ylab="Latitude", main="NO3 lower tail - upper tail")
-legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXno3.diff,nclasses)$breaks),
-       col=pal)
-dev.off()
+# pdf("map_taildiff_kelpXwaves_3panel.pdf", width=6.5, height=3)
+# 
+# par(mfrow=c(1,3),mar=c(4.1,4.1,2,1))
+# 
+# plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXwaves.lb*kelpXwaves.filt,nclasses)$class], cex=0.5,
+#      xlab="Longitude", ylab="Latitude", main="lower tail")
+# legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXwaves.lb*kelpXwaves.filt,nclasses)$breaks), col=pal, cex=0.8)
+# 
+# plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXwaves.ub*kelpXwaves.filt,nclasses)$class], cex=0.5,
+#      xlab="Longitude", ylab="Latitude", main="upper tail")
+# legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXwaves.ub*kelpXwaves.filt,nclasses)$breaks), col=pal, cex=0.8)
+# 
+# plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXwaves.diff,nclasses)$class], cex=0.5,
+#      xlab="Longitude", ylab="Latitude", main="lower tail - upper tail")
+# legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXwaves.diff*kelpXwaves.filt,nclasses)$breaks), col=pal, cex=0.8)
+# dev.off()
 
 
-pdf("map_taildiff_kelpXno3_3panel.pdf", width=6.5, height=3)
-
-par(mfrow=c(1,3),mar=c(4.1,4.1,2,1))
-
-plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXno3.lb*kelpXno3.filt,nclasses)$class], cex=0.5,
-     xlab="Longitude", ylab="Latitude", main="lower tail")
-legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXno3.lb*kelpXno3.filt,nclasses)$breaks), col=pal, cex=0.8)
-
-plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXno3.ub*kelpXno3.filt,nclasses)$class], cex=0.5,
-     xlab="Longitude", ylab="Latitude", main="upper tail")
-legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXno3.ub*kelpXno3.filt,nclasses)$breaks), col=pal, cex=0.8)
-
-plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXno3.diff,nclasses)$class], cex=0.5,
-     xlab="Longitude", ylab="Latitude", main="lower tail - upper tail")
-legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXno3.diff,nclasses)$breaks), col=pal, cex=0.8)
-dev.off()
+# pdf("map_taildiff_kelpXno3.pdf")
+# plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXno3.diff,nclasses)$class], cex=0.5,
+#      xlab="Longitude", ylab="Latitude", main="NO3 lower tail - upper tail")
+# legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXno3.diff,nclasses)$breaks),
+#        col=pal)
+# dev.off()
 
 
-
-pdf("map_taildiff_kelpXnpgo.pdf")
-plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXnpgo.diff,nclasses)$class], cex=0.5,
-     xlab="Longitude", ylab="Latitude", main="NPGO lower tail - upper tail")
-legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXnpgo.diff,nclasses)$breaks),
-       col=pal)
-dev.off()
+# pdf("map_taildiff_kelpXno3_3panel.pdf", width=6.5, height=3)
+# 
+# par(mfrow=c(1,3),mar=c(4.1,4.1,2,1))
+# 
+# plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXno3.lb*kelpXno3.filt,nclasses)$class], cex=0.5,
+#      xlab="Longitude", ylab="Latitude", main="lower tail")
+# legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXno3.lb*kelpXno3.filt,nclasses)$breaks), col=pal, cex=0.8)
+# 
+# plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXno3.ub*kelpXno3.filt,nclasses)$class], cex=0.5,
+#      xlab="Longitude", ylab="Latitude", main="upper tail")
+# legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXno3.ub*kelpXno3.filt,nclasses)$breaks), col=pal, cex=0.8)
+# 
+# plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXno3.diff,nclasses)$class], cex=0.5,
+#      xlab="Longitude", ylab="Latitude", main="lower tail - upper tail")
+# legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXno3.diff,nclasses)$breaks), col=pal, cex=0.8)
+# dev.off()
 
 
 
-pdf("map_taildiff_kelpXnpgo_3panel.pdf", width=6.5, height=3)
+# pdf("map_taildiff_kelpXnpgo.pdf")
+# plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXnpgo.diff,nclasses)$class], cex=0.5,
+#      xlab="Longitude", ylab="Latitude", main="NPGO lower tail - upper tail")
+# legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXnpgo.diff,nclasses)$breaks),
+#        col=pal)
+# dev.off()
 
-par(mfrow=c(1,3),mar=c(4.1,4.1,2,1))
 
-plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXnpgo.lb*kelpXnpgo.filt,nclasses)$class], cex=0.5,
-     xlab="Longitude", ylab="Latitude", main="lower tail")
-legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXnpgo.lb*kelpXnpgo.filt,nclasses)$breaks), col=pal, cex=0.8)
 
-plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXnpgo.ub*kelpXnpgo.filt,nclasses)$class], cex=0.5,
-     xlab="Longitude", ylab="Latitude", main="upper tail")
-legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXnpgo.ub*kelpXnpgo.filt,nclasses)$breaks), col=pal, cex=0.8)
-
-plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXnpgo.diff,nclasses)$class], cex=0.5,
-     xlab="Longitude", ylab="Latitude", main="lower tail - upper tail")
-legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXno3.diff,nclasses)$breaks), col=pal, cex=0.8)
-dev.off()
+# pdf("map_taildiff_kelpXnpgo_3panel.pdf", width=6.5, height=3)
+# 
+# par(mfrow=c(1,3),mar=c(4.1,4.1,2,1))
+# 
+# plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXnpgo.lb*kelpXnpgo.filt,nclasses)$class], cex=0.5,
+#      xlab="Longitude", ylab="Latitude", main="lower tail")
+# legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXnpgo.lb*kelpXnpgo.filt,nclasses)$breaks), col=pal, cex=0.8)
+# 
+# plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXnpgo.ub*kelpXnpgo.filt,nclasses)$class], cex=0.5,
+#      xlab="Longitude", ylab="Latitude", main="upper tail")
+# legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXnpgo.ub*kelpXnpgo.filt,nclasses)$breaks), col=pal, cex=0.8)
+# 
+# plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXnpgo.diff,nclasses)$class], cex=0.5,
+#      xlab="Longitude", ylab="Latitude", main="lower tail - upper tail")
+# legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXno3.diff,nclasses)$breaks), col=pal, cex=0.8)
+# dev.off()
 
 
 #make the environmental covariates averages within 50km!
@@ -521,55 +521,55 @@ summary(mod)
 # mod2<-gls(kelp ~ no3 + waves + npgo, correlation = corExp(form = ~ lon + lat), data=moddat2)
 # summary(mod2)
 
-pdf("scatterplot_by_association.pdf")
-par(xpd=T)
-plot(NA, NA, xlim=range(-1*waves.raw), ylim=range(kelp.raw), xlab="calmness", ylab="kelp biomass")
-legend('top', pch=16, col=c("blue","red"),legend=c("lower stronger","upper stronger"), ncol=2, inset=-0.08)
+# pdf("scatterplot_by_association.pdf")
+# par(xpd=T)
+# plot(NA, NA, xlim=range(-1*waves.raw), ylim=range(kelp.raw), xlab="calmness", ylab="kelp biomass")
+# legend('top', pch=16, col=c("blue","red"),legend=c("lower stronger","upper stronger"), ncol=2, inset=-0.08)
+# 
+# for(ii in 1:nrow(waves)){
+#   
+#   if(is.na(kelpXwaves.diff[ii])){next}
+#   
+#   else if(kelpXwaves.diff[ii] < 0){
+#     points(-1*waves.raw[ii,], kelp.raw[ii,], pch=16, col="blue")
+#   }
+#   else if(kelpXwaves.diff[ii] > 0){
+#     points(-1*waves.raw[ii,], kelp.raw[ii,], pch=16, col="red")
+#   }
+#   
+# }
+# 
+# dev.off()
 
-for(ii in 1:nrow(waves)){
-  
-  if(is.na(kelpXwaves.diff[ii])){next}
-  
-  else if(kelpXwaves.diff[ii] < 0){
-    points(-1*waves.raw[ii,], kelp.raw[ii,], pch=16, col="blue")
-  }
-  else if(kelpXwaves.diff[ii] > 0){
-    points(-1*waves.raw[ii,], kelp.raw[ii,], pch=16, col="red")
-  }
-  
-}
 
-dev.off()
-
-
-pdf("example_strong_upper.pdf")
-par(mfrow=c(2,1), mar=c(4.1,4.1,2.1,4.1))
-plot(years, kelp[which.min(kelpXwaves.diff),], type="b", col="blue", ylab="Kelp biomass (residuals)",
-     main="strong upper tail association")
-par(new=T)
-plot(years, -1*waves[which.min(kelpXwaves.diff),], type="b", col="red", yaxt="n", ylab="")
-plot(-1*waves[which.min(kelpXwaves.diff),], kelp[which.min(kelpXwaves.diff),],
-     xlab="calmness (residuals)", ylab="kelp biomass (residuals)")
-dev.off()
-
-pdf("example_strong_lower.pdf")
-par(mfrow=c(2,1), mar=c(4.1,4.1,2.1,4.1))
-plot(years, kelp[which.max(kelpXwaves.diff),], type="b", col="blue", ylab="Kelp biomass (residuals)",
-     main="strong lower tail association")
-par(new=T)
-plot(years, -1*waves[which.max(kelpXwaves.diff),], type="b", col="red", yaxt="n", ylab="")
-plot(-1*waves[which.max(kelpXwaves.diff),], kelp[which.max(kelpXwaves.diff),],
-     xlab="calmness (residuals)", ylab="kelp biomass (residuals)")
-dev.off()
+# pdf("example_strong_upper.pdf")
+# par(mfrow=c(2,1), mar=c(4.1,4.1,2.1,4.1))
+# plot(years, kelp[which.min(kelpXwaves.diff),], type="b", col="blue", ylab="Kelp biomass (residuals)",
+#      main="strong upper tail association")
+# par(new=T)
+# plot(years, -1*waves[which.min(kelpXwaves.diff),], type="b", col="red", yaxt="n", ylab="")
+# plot(-1*waves[which.min(kelpXwaves.diff),], kelp[which.min(kelpXwaves.diff),],
+#      xlab="calmness (residuals)", ylab="kelp biomass (residuals)")
+# dev.off()
+# 
+# pdf("example_strong_lower.pdf")
+# par(mfrow=c(2,1), mar=c(4.1,4.1,2.1,4.1))
+# plot(years, kelp[which.max(kelpXwaves.diff),], type="b", col="blue", ylab="Kelp biomass (residuals)",
+#      main="strong lower tail association")
+# par(new=T)
+# plot(years, -1*waves[which.max(kelpXwaves.diff),], type="b", col="red", yaxt="n", ylab="")
+# plot(-1*waves[which.max(kelpXwaves.diff),], kelp[which.max(kelpXwaves.diff),],
+#      xlab="calmness (residuals)", ylab="kelp biomass (residuals)")
+# dev.off()
 
 
 cor.test(rowMeans(kelp.raw), kelpXwaves.diff, method="spearman")
 
 cor.test(-1*rowMeans(waves.raw), kelpXwaves.diff)
 
-pdf("calmness_vs_tail.pdf")
-plot(-1*rowMeans(waves.raw), kelpXwaves.diff, ylab="kelpXwaves lower - upper", xlab="Mean wave calmness")
-dev.off()
+# pdf("calmness_vs_tail.pdf")
+# plot(-1*rowMeans(waves.raw), kelpXwaves.diff, ylab="kelpXwaves lower - upper", xlab="Mean wave calmness")
+# dev.off()
 
 
 
@@ -660,7 +660,7 @@ summary(mod3) #no significant effects; model does not fit without setting value 
 
 #Fig 1: distance decay
 
-png("fig1_distdecay.png", width=6.5, height=3, units="in", res=300)
+png("./manuscript/fig1_distdecay.png", width=6.5, height=3, units="in", res=300)
 
 par(mfrow=c(1,3), mgp=c(2.3,0.7,0), mar=c(2.1,2.1,1.6,1.1), cex.lab=1.3, oma=c(2,2,0,0))
 
@@ -709,7 +709,7 @@ axis.labels=c("Monterey","Point. Sur","Morro Bay","Pt. Conception","Santa Monica
 axis.labels2<-c("MO","PS","MB","PC","SM","SD")
 
 
-png("fig2_matrices.png", width=3.2, height=8.5, units="in", res=300)
+png("./manuscript/fig2_matrices.png", width=3.2, height=8.5, units="in", res=300)
 
 par(mfrow=c(3,1), mgp=c(2,0.5,0), mar=c(1.1,1.1,1.5,1.1), oma=c(6,1.5,0,0))
 
@@ -774,7 +774,7 @@ nclasses=8
 pal<-brewer.pal(nclasses,"RdYlBu")
 tpal<-c("#D7302780", "#F46D4380", "#FDAE6180", "#FEE09080", "#E0F3F880", "#ABD9E980", "#74ADD180", "#4575B480")
 
-png("fig3_kelpsynch_maps.png", width=6.5, height=3, res=300, units="in")
+png("./manuscript/fig3_kelpsynch_maps.png", width=6.5, height=3, res=300, units="in")
 
 par(mfrow=c(1,3), mar=c(0.5,0.5,2,0.5))
 
@@ -820,7 +820,7 @@ dev.off()
 
 
 ## Figure 4: Driver tail association maps
-png("fig4_drivertail_maps.png", width=6.5, height=3, res=300, units="in")
+png("./manuscript/fig4_drivertail_maps.png", width=6.5, height=3, res=300, units="in")
 
 par(mfrow=c(1,3),mar=c(0.5,0.5,2,0.5))
 
@@ -882,7 +882,7 @@ dev.off()
 
 ## Figure 5: Calmness versus tail association
 
-png("fig5_calmnTailAssoc.png",units="in",res=300,height=3.5,width=6.5)
+png("./manuscript/fig5_calmnTailAssoc.png",units="in",res=300,height=3.5,width=6.5)
 
 layout(matrix(c(1,1,2,3), nrow=2, ncol=2), widths=c(0.4,0.6,0.6))
 

@@ -1,0 +1,904 @@
+rm(list=ls())
+
+library(wsyn)
+library(ncf)
+library(ecodist)
+library(RColorBrewer)
+library(nlme)
+library(fields)
+library(copula)
+library(mvtnorm)
+library(matrixcalc)
+library(Matrix)
+library(grDevices)
+library(rgdal)
+
+setwd("/Users/jonathanwalter/GitHub/kelp-synchrony/TailAssociation")
+
+source("partialSpearman.R")
+source("ncsurrog.R")
+
+kelp.raw<-as.matrix(read.csv("Kelp_Annual_CleanedBasic.csv", header=F))
+no3.raw<-as.matrix(read.csv("NO3_Annual_CleanedBasic.csv", header=F))
+waves.raw<-as.matrix(read.csv("wave_Annual_CleanedBasic.csv",header=F))
+clims.raw<-read.csv("Climind_Annual_CleanedBasic.csv")
+quarters<-read.csv("Quarters_CleanedBasic.csv")
+locs<-read.csv("Locs_CleanedBasic.csv")
+
+#detrend the data
+kelp<-kelp.raw
+no3<-no3.raw
+waves<-waves.raw
+clims<-clims.raw
+
+years<-unique(quarters$Year)
+
+for(ii in 1:nrow(kelp)){
+  
+  kelp[ii,]<-residuals(lm(kelp.raw[ii,] ~ years))
+  no3[ii,]<-residuals(lm(no3.raw[ii,] ~years))
+  waves[ii,]<-residuals(lm(waves[ii,]~years))
+
+}
+
+clims$NPGO<-residuals(lm(clims$NPGO ~ years))
+
+locs$Region<-rep(NA,nrow(locs))
+locs$Region[1:242]<-1
+locs$Region[243:nrow(locs)]<-2
+
+pdf("locs_by_cluster.pdf")
+plot(locs$Lon, locs$Lat, col=locs$Region, pch=19, cex=0.2)
+legend("topright",pch=19,col=1:2,legend=c("Central","Southern"))
+dev.off()
+
+
+lb<-c(0,0.5)
+ub<-c(0.5,1)
+
+cormat.all<-cor(t(kelp), method="spearman")
+filt.pos<-ifelse(cormat.all>=0,1,NA)
+
+cormat.lb<-matrix(0,nrow(kelp),nrow(kelp))
+cormat.ub<-matrix(0,nrow(kelp),nrow(kelp))
+for(ii in 2:nrow(kelp)){
+  for(jj in 1:(ii-1)){
+    
+    cormat.lb[ii,jj]<-partialSpearman(kelp[ii,],kelp[jj,],lb)
+    cormat.ub[ii,jj]<-partialSpearman(kelp[ii,],kelp[jj,],ub)
+    
+  }
+}
+
+cormat.lb<-cormat.lb + t(cormat.lb)
+cormat.ub<-cormat.ub + t(cormat.ub)
+
+cormat.lb.filt<-cormat.lb*filt.pos
+cormat.ub.filt<-cormat.ub*filt.pos
+
+#distance decay --  does it depend on tail association?
+
+splineFit<-function(distmat,zmat,nresamp=1000,quantiles=c(0,0.01,0.025,0.05,0.1,0.5,0.9,0.95,0.975,0.99,1)){
+  triang<-lower.tri(distmat)
+  distmat<-distmat
+  xemp<-distmat[triang]
+  yemp<-zmat[triang]
+  drop.NaNs<-!is.na(yemp)
+  dfs=sqrt(nrow(distmat))
+  out<-list()
+  
+  emp.spline<-smooth.spline(xemp[drop.NaNs],yemp[drop.NaNs],df=dfs)
+  out$emp.spline<-emp.spline
+  
+  resamp.splines<-matrix(NA, nrow=nresamp, ncol=length(emp.spline$y))
+  for(ii in 1:nresamp){
+    shuffle<-sample(1:nrow(distmat), size=nrow(distmat), replace=TRUE)
+    xres<-distmat[shuffle,shuffle][triang]
+    yres<-zmat[shuffle,shuffle][triang]
+    drop.NaNs<-!is.na(yres)
+    xres<-xres[drop.NaNs]
+    yres<-yres[drop.NaNs]
+    yres<-yres[!(xres==0)]
+    xres<-xres[!(xres==0)]
+    res.spline<-smooth.spline(xres,yres,df=dfs)
+    resamp.splines[ii,]<-predict(res.spline, x=emp.spline$x)$y
+  }
+  out$resamp.splines<-resamp.splines
+  out$spline.quantiles<-apply(resamp.splines,2,quantile,probs=quantiles)
+  return(out)
+}
+
+geog.dist<-gcdist(locs$Lon,locs$Lat)
+
+sncf.lb<-splineFit(geog.dist, cormat.lb.filt, quantiles=c(0.025,0.5,0.975))
+sncf.ub<-splineFit(geog.dist, cormat.ub.filt, quantiles=c(0.025,0.5,0.975))
+
+
+# plot(geog.dist[lower.tri(geog.dist)], cormat.lb[lower.tri(cormat.lb)], main="Lower tail",
+#      xlab="Distance (Km)", ylab="Partial Spearman correlation", pch=20, cex=0.2, ylim=c(-0.5,0.5))
+# lines(sncf.lb$emp.spline$x, sncf.lb$emp.spline$y, col="red")
+# lines(sncf.lb$emp.spline$x,sncf.lb$spline.quantiles[1,], col="red", lty=2)
+# #lines(sncf.lb$emp.spline$x,sncf.lb$spline.quantiles[2,], col="red", lty=2)
+# lines(sncf.lb$emp.spline$x,sncf.lb$spline.quantiles[3,], col="red", lty=2)
+# 
+# plot(geog.dist[lower.tri(geog.dist)], cormat.lb[lower.tri(cormat.ub)], main="Upper tail", 
+#      xlab="Distance (Km)", ylab="Partial Spearman correlation", pch=20, cex=0.2, ylim=c(-0.5,0.5))
+# lines(sncf.ub$emp.spline$x, sncf.ub$emp.spline$y, col="blue")
+# lines(sncf.ub$emp.spline$x,sncf.ub$spline.quantiles[1,], col="blue", lty=3)
+# #lines(sncf.lb$emp.spline$x,sncf.ub$spline.quantiles[2,], col="blue", lty=2)
+# lines(sncf.ub$emp.spline$x,sncf.ub$spline.quantiles[3,], col="blue", lty=3)
+
+pdf("dist_decay_allsites.pdf")
+plot(sncf.lb$emp.spline$x, sncf.lb$emp.spline$y, col="red", type="l", ylim=c(0,0.4), lwd=2,
+     xlab="Distance (km)", ylab="Partial Spearman correlation", main="All coastline segments")
+lines(sncf.lb$emp.spline$x, sncf.lb$spline.quantiles[1,], col="red", lty=3)
+lines(sncf.lb$emp.spline$x, sncf.lb$spline.quantiles[3,], col="red", lty=3)
+lines(sncf.ub$emp.spline$x, sncf.ub$emp.spline$y, col="blue", lwd=2)
+lines(sncf.ub$emp.spline$x, sncf.ub$spline.quantiles[1,], col="blue", lty=3)
+lines(sncf.ub$emp.spline$x, sncf.ub$spline.quantiles[3,], col="blue", lty=3)
+legend("topright",lty=1,col=c("red","blue"),legend=c("lower","upper"))
+dev.off()
+
+
+
+#look at regions separately -------------------------------------------------------------------------------------------
+
+geog.dist.c1<-geog.dist[locs$Region==1,locs$Region==1]
+geog.dist.c2<-geog.dist[locs$Region==2,locs$Region==2]
+
+cormat.lb.c1<-cormat.lb.filt[locs$Region==1,locs$Region==1]
+cormat.ub.c1<-cormat.ub.filt[locs$Region==1,locs$Region==1]
+cormat.lb.c2<-cormat.lb.filt[locs$Region==2,locs$Region==2]
+cormat.ub.c2<-cormat.ub.filt[locs$Region==2,locs$Region==2]
+
+sncf.lb.c1<-splineFit(geog.dist[locs$Region==1,locs$Region==1], cormat.lb.c1, quantiles=c(0.025,0.5,0.975))
+sncf.ub.c1<-splineFit(geog.dist[locs$Region==1,locs$Region==1], cormat.ub.c1, quantiles=c(0.025,0.5,0.975))
+sncf.lb.c2<-splineFit(geog.dist[locs$Region==2,locs$Region==2], cormat.lb.c2, quantiles=c(0.025,0.5,0.975))
+sncf.ub.c2<-splineFit(geog.dist[locs$Region==2,locs$Region==2], cormat.ub.c2, quantiles=c(0.025,0.5,0.975))
+
+
+# plot(geog.dist.c1[lower.tri(geog.dist)], cormat.lb.c1[lower.tri(cormat.lb)], main="C1 Lower tail",
+#      xlab="Distance (Km)", ylab="Partial Spearman correlation", pch=20, cex=0.2, ylim=c(-0.5,0.5))
+# lines(sncf.lb.c1$emp.spline$x, sncf.lb.c1$emp.spline$y, col="red")
+# lines(sncf.lb.c1$emp.spline$x,sncf.lb.c1$spline.quantiles[1,], col="red", lty=2)
+# #lines(sncf.lb$emp.spline$x,sncf.lb$spline.quantiles[2,], col="red", lty=2)
+# lines(sncf.lb.c1$emp.spline$x,sncf.lb.c1$spline.quantiles[3,], col="red", lty=2)
+# 
+# plot(geog.dist.c1[lower.tri(geog.dist)], cormat.ub.c1[lower.tri(cormat.ub)], main="C1 Upper tail", 
+#      xlab="Distance (Km)", ylab="Partial Spearman correlation", pch=20, cex=0.2, ylim=c(-0.5,0.5))
+# lines(sncf.ub.c1$emp.spline$x, sncf.ub.c1$emp.spline$y, col="blue")
+# lines(sncf.ub.c1$emp.spline$x,sncf.ub.c1$spline.quantiles[1,], col="blue", lty=3)
+# #lines(sncf.lb$emp.spline$x,sncf.ub$spline.quantiles[2,], col="blue", lty=2)
+# lines(sncf.ub.c1$emp.spline$x,sncf.ub.c1$spline.quantiles[3,], col="blue", lty=3)
+
+pdf("dist_decay_central.pdf")
+plot(sncf.lb.c1$emp.spline$x, sncf.lb.c1$emp.spline$y, col="red", type="l", ylim=c(0,0.4), lwd=2,
+     xlab="Distance (km)", ylab="Partial Spearman correlation", main="Central California (c1)")
+lines(sncf.lb.c1$emp.spline$x, sncf.lb.c1$spline.quantiles[1,], col="red", lty=3)
+lines(sncf.lb.c1$emp.spline$x, sncf.lb.c1$spline.quantiles[3,], col="red", lty=3)
+lines(sncf.ub.c1$emp.spline$x, sncf.ub.c1$emp.spline$y, col="blue", lwd=2)
+lines(sncf.ub.c1$emp.spline$x, sncf.ub.c1$spline.quantiles[1,], col="blue", lty=3)
+lines(sncf.ub.c1$emp.spline$x, sncf.ub.c1$spline.quantiles[3,], col="blue", lty=3)
+legend("topright",lty=1,col=c("red","blue"),legend=c("lower","upper"))
+dev.off()
+
+pdf("dist_decay_southern.pdf")
+plot(sncf.lb.c2$emp.spline$x, sncf.lb.c2$emp.spline$y, col="red", type="l", ylim=c(0,0.4), lwd=2,
+     xlab="Distance (km)", ylab="Partial Spearman correlation", main="Southern California (c2)")
+lines(sncf.lb.c2$emp.spline$x, sncf.lb.c2$spline.quantiles[1,], col="red", lty=3)
+lines(sncf.lb.c2$emp.spline$x, sncf.lb.c2$spline.quantiles[3,], col="red", lty=3)
+lines(sncf.ub.c2$emp.spline$x, sncf.ub.c2$emp.spline$y, col="blue", lwd=2)
+lines(sncf.ub.c2$emp.spline$x, sncf.ub.c2$spline.quantiles[1,], col="blue", lty=3)
+lines(sncf.ub.c2$emp.spline$x, sncf.ub.c2$spline.quantiles[3,], col="blue", lty=3)
+legend("topright",lty=1,col=c("red","blue"),legend=c("lower","upper"))
+dev.off()
+
+
+## visualize differences between upper and lower tails---------------------------------------------
+
+cormat.diff<-cormat.ub.filt-cormat.lb.filt
+
+pdf("hist_kelpsynch_taildiff.pdf")
+hist(cormat.diff[lower.tri(cormat.diff)])
+abline(v=median(cormat.diff[lower.tri(cormat.diff)], na.rm=T), lty=2, col="red")
+dev.off()
+
+mean(cormat.diff[lower.tri(cormat.diff)], na.rm=T)
+
+cormat.diff.nodiag<-cormat.diff
+diag(cormat.diff.nodiag)<-NA
+
+pdf("synchmat_kelp_taildiff.pdf")
+image.plot(cormat.diff.nodiag)
+dev.off()
+
+
+
+## test whether geographies of kelp synchrony differ between upper and lower tails ----------------
+# mantel(as.dist(cormat.lb)~as.dist(cormat.ub))
+# 
+# set.seed(17)
+# 
+# ncsurr<-ncsurrog(m=t(kelp), numsurrog=1000, plotcheckloc=paste0(getwd(),"/plotcheck"))
+# 
+# empDiff<-sum(cormat.ub.filt-cormat.lb.filt, na.rm=T)
+# empCorr<-cor(cormat.lb.filt[lower.tri(cormat.lb.filt)]
+#              ,cormat.ub.filt[lower.tri(cormat.ub.filt)]
+#              ,use="pairwise.complete.obs")
+# 
+# surrDiff<-rep(NA, dim(ncsurr)[3])
+# surrCorr<-rep(NA, dim(ncsurr)[3])
+# for(rep in 1:dim(ncsurr)[3]){
+#   
+#   N<-dim(ncsurr)[2]
+#   
+#   tmpdat<-t(ncsurr[,,rep])
+#   tmpcormat<-cor(t(tmpdat), method="spearman")
+#   tmpfilt<-ifelse(tmpcormat>=0,1,NA)
+#   tmpcormat.lb<-matrix(0,N,N)
+#   tmpcormat.ub<-matrix(0,N,N)
+#   for(ii in 2:nrow(kelp)){
+#     for(jj in 1:(ii-1)){
+#       tmpcormat.lb[ii,jj]<-partialSpearman(tmpdat[ii,],tmpdat[jj,],lb)
+#       tmpcormat.ub[ii,jj]<-partialSpearman(tmpdat[ii,],tmpdat[jj,],ub)
+#     }
+#   }
+#   
+#   tmpcormat.lb<-tmpcormat.lb + t(tmpcormat.lb) * tmpfilt
+#   tmpcormat.ub<-tmpcormat.ub + t(tmpcormat.ub) * tmpfilt
+#   
+#   surrDiff[rep]<-sum(tmpcormat.ub-tmpcormat.lb, na.rm=T)
+#   surrCorr[rep]<-1-cor(tmpcormat.lb[lower.tri(tmpcormat.lb)]
+#                      ,tmpcormat.ub[lower.tri(tmpcormat.ub)]
+#                      ,use="pairwise.complete.obs")
+# }
+# 
+# rank(c(empDiff,surrDiff))[1]/1001 ## overall degree of tail dependence not significant
+# rank(c(empCorr,surrCorr))[1]/1001 ## but geography significantly differs
+
+
+## Measure average synchrony within a distance threshold
+
+avg_by_dist<-function(cormat, dmat, thresh){
+  
+  diag(cormat)<-NA
+  
+  nbhd<-ifelse(dmat <= thresh, 1, 0)
+  nbhd.cor<-cormat * nbhd
+  return(apply(nbhd.cor, 1, mean, na.rm=T))
+  
+}
+
+geog.dist<-ncf::gcdist(locs$Lon, locs$Lat)
+
+coravg.lb.25km<-avg_by_dist(cormat.lb.filt, geog.dist, 25)
+coravg.ub.25km<-avg_by_dist(cormat.ub.filt, geog.dist, 25)
+coravg.diff.25km<-avg_by_dist(cormat.diff, geog.dist, 25)
+
+#coravg.diff.25km<-abs(coravg.lb.25km)-abs(coravg.ub.25km)
+
+nclasses=7
+pal<-brewer.pal(nclasses,"RdYlBu")
+pal2<-brewer.pal(nclasses, "Greens")
+
+
+
+class_eq_int<-function(x, n){
+  
+  breaks<-seq(from=min(x, na.rm=T), to=max(x, na.rm=T)+1/length(x), length.out=n+1)
+  class<-rep(NA, length(x))
+  
+  for(ii in 1:n){
+    class[x>=breaks[ii] & x<breaks[ii+1]]<-ii
+  }
+  return(list(class=class, breaks=breaks))
+}
+
+
+class_eq_int_sym<-function(x, n){
+  
+  lim<-max(abs(x), na.rm=T)
+  breaks<-seq(from=-1*lim, to=lim, length.out=n+1)
+  class<-rep(NA, length(x))
+  for(ii in 1:n){
+    class[x>=breaks[ii] & x<breaks[ii+1]]<-ii
+  }
+  return(list(class=class, breaks=breaks))
+  
+}
+
+
+legtext<-function(breaks, digits=2){
+  out<-NULL
+  for(ii in 1:(length(breaks)-1)){
+    out<-c(out, paste0(round(breaks[ii],digits)," to ", round(breaks[ii+1],digits)))
+  }
+  return(out)
+}
+
+
+pdf("sync_taildiff_25km.pdf")
+plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(coravg.diff.25km,nclasses)$class], cex=0.5,
+     xlab="Longitude", ylab="Latitude", main="mean <=25 km synchrony lower tail - upper tail")
+legend("topright", pch=19, legend=legtext(class_eq_int_sym(coravg.diff.25km,nclasses)$breaks, digits=3),
+       col=pal)
+dev.off()
+
+
+pdf("sync_taildiff_25km_3panel.pdf", width=6.5, height=3)
+
+par(mfrow=c(1,3),mar=c(4.1,4.1,2,1))
+
+plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(coravg.lb.25km,nclasses)$class], cex=0.5,
+     xlab="Longitude", ylab="Latitude", main="lower tail")
+legend("topright", pch=19, legend=legtext(class_eq_int_sym(coravg.lb.25km,nclasses)$breaks, digits=3)
+       , col=pal, cex=0.8)
+plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(coravg.ub.25km,nclasses)$class], cex=0.5,
+     xlab="Longitude", ylab="Latitude", main="upper tail")
+legend("topright", pch=19, legend=legtext(class_eq_int_sym(coravg.ub.25km,nclasses)$breaks, digits=3), 
+       col=pal, cex=0.8)
+
+plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(coravg.diff.25km,nclasses)$class], cex=0.5,
+     xlab="Longitude", ylab="Latitude", main="lower tail - upper tail")
+legend("topright", pch=19, legend=legtext(class_eq_int_sym(coravg.diff.25km,nclasses)$breaks, digits=3)
+       , col=pal, cex=0.8)
+
+dev.off()
+
+
+#Tail dependence in environmental relationships
+
+kelpXwaves.all<-rep(NA, nrow(kelp))
+kelpXwaves.lb<-rep(NA, nrow(kelp))
+kelpXwaves.ub<-rep(NA, nrow(kelp))
+kelpXno3.all<-rep(NA, nrow(kelp))
+kelpXno3.lb<-rep(NA, nrow(kelp))
+kelpXno3.ub<-rep(NA, nrow(kelp))
+kelpXnpgo.lb<-rep(NA, nrow(kelp))
+kelpXnpgo.ub<-rep(NA, nrow(kelp))
+kelpXnpgo.all<-rep(NA, nrow(kelp))
+
+for(ii in 1:nrow(kelp)){
+  
+  kelpXwaves.lb[ii]<-partialSpearman(kelp[ii,],-1*waves[ii,],c(0,0.5))
+  kelpXwaves.ub[ii]<-partialSpearman(kelp[ii,],-1*waves[ii,],c(0.5,1))
+  kelpXwaves.all[ii]<-cor(kelp[ii,],-1*waves[ii,], method="spearman")
+  kelpXno3.lb[ii]<-partialSpearman(kelp[ii,],no3[ii,],c(0,0.5))
+  kelpXno3.ub[ii]<-partialSpearman(kelp[ii,],no3[ii,],c(0.5,1))
+  kelpXno3.all[ii]<-cor(kelp[ii,],no3[ii,], method="spearman")
+  kelpXnpgo.lb[ii]<-partialSpearman(kelp[ii,],clims$NPGO,c(0,0.5))
+  kelpXnpgo.ub[ii]<-partialSpearman(kelp[ii,],clims$NPGO,c(0.5,1))
+  kelpXnpgo.all[ii]<-cor(kelp[ii,],clims$NPGO, method="spearman")
+  
+}
+
+
+kelpXwaves.filt<-ifelse(kelpXwaves.all>=0,1,NA)
+kelpXno3.filt<-ifelse(kelpXno3.all>=0,1,NA)
+kelpXnpgo.filt<-ifelse(kelpXnpgo.all>=0,1,NA)
+
+kelpXwaves.diff<-kelpXwaves.ub-kelpXwaves.lb*kelpXwaves.filt
+kelpXno3.diff<-kelpXno3.ub-kelpXno3.lb*kelpXno3.filt
+kelpXnpgo.diff<-kelpXnpgo.ub-kelpXnpgo.lb*kelpXnpgo.filt
+
+pdf("hist_taildiff_kelpXwaves.pdf")
+hist(kelpXwaves.diff, xlab="lower tail - upper tail")
+abline(v=median(kelpXwaves.diff, na.rm=T), col="red", lty=2)
+dev.off()
+
+pdf("hist_taildiff_kelpXno3.pdf")
+hist(kelpXno3.diff, xlab="lower tail - upper tail")
+abline(v=median(kelpXno3.diff,na.rm=T), col="red", lty=2)
+dev.off()
+
+pdf("hist_taildiff_kelpXnpgo.pdf")
+hist(kelpXnpgo.diff, xlab="lower tail - upper tail")
+abline(v=median(kelpXnpgo.diff,na.rm=T), col="red", lty=2)
+dev.off()
+
+cor(kelpXwaves.diff, kelpXno3.diff, use="pairwise.complete.obs") #these are slightly positively correlated
+
+cor(kelpXwaves.diff, kelpXnpgo.diff, use="pairwise.complete.obs") #these are moderately negatively correlated
+
+cor(kelpXno3.diff, kelpXnpgo.diff, use="pairwise.complete.obs") #these are moderately positively correlated
+
+pdf("map_taildiff_kelpXwaves.pdf")
+plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXwaves.diff,nclasses)$class], cex=0.5,
+     xlab="Longitude", ylab="Latitude", main="Waves lower tail - upper tail")
+legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXwaves.diff,nclasses)$breaks),
+       col=pal)
+dev.off()
+
+
+pdf("map_taildiff_kelpXwaves_3panel.pdf", width=6.5, height=3)
+
+par(mfrow=c(1,3),mar=c(4.1,4.1,2,1))
+
+plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXwaves.lb*kelpXwaves.filt,nclasses)$class], cex=0.5,
+     xlab="Longitude", ylab="Latitude", main="lower tail")
+legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXwaves.lb*kelpXwaves.filt,nclasses)$breaks), col=pal, cex=0.8)
+
+plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXwaves.ub*kelpXwaves.filt,nclasses)$class], cex=0.5,
+     xlab="Longitude", ylab="Latitude", main="upper tail")
+legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXwaves.ub*kelpXwaves.filt,nclasses)$breaks), col=pal, cex=0.8)
+
+plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXwaves.diff,nclasses)$class], cex=0.5,
+     xlab="Longitude", ylab="Latitude", main="lower tail - upper tail")
+legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXwaves.diff*kelpXwaves.filt,nclasses)$breaks), col=pal, cex=0.8)
+dev.off()
+
+
+pdf("map_taildiff_kelpXno3.pdf")
+plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXno3.diff,nclasses)$class], cex=0.5,
+     xlab="Longitude", ylab="Latitude", main="NO3 lower tail - upper tail")
+legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXno3.diff,nclasses)$breaks),
+       col=pal)
+dev.off()
+
+
+pdf("map_taildiff_kelpXno3_3panel.pdf", width=6.5, height=3)
+
+par(mfrow=c(1,3),mar=c(4.1,4.1,2,1))
+
+plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXno3.lb*kelpXno3.filt,nclasses)$class], cex=0.5,
+     xlab="Longitude", ylab="Latitude", main="lower tail")
+legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXno3.lb*kelpXno3.filt,nclasses)$breaks), col=pal, cex=0.8)
+
+plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXno3.ub*kelpXno3.filt,nclasses)$class], cex=0.5,
+     xlab="Longitude", ylab="Latitude", main="upper tail")
+legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXno3.ub*kelpXno3.filt,nclasses)$breaks), col=pal, cex=0.8)
+
+plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXno3.diff,nclasses)$class], cex=0.5,
+     xlab="Longitude", ylab="Latitude", main="lower tail - upper tail")
+legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXno3.diff,nclasses)$breaks), col=pal, cex=0.8)
+dev.off()
+
+
+
+pdf("map_taildiff_kelpXnpgo.pdf")
+plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXnpgo.diff,nclasses)$class], cex=0.5,
+     xlab="Longitude", ylab="Latitude", main="NPGO lower tail - upper tail")
+legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXnpgo.diff,nclasses)$breaks),
+       col=pal)
+dev.off()
+
+
+
+pdf("map_taildiff_kelpXnpgo_3panel.pdf", width=6.5, height=3)
+
+par(mfrow=c(1,3),mar=c(4.1,4.1,2,1))
+
+plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXnpgo.lb*kelpXnpgo.filt,nclasses)$class], cex=0.5,
+     xlab="Longitude", ylab="Latitude", main="lower tail")
+legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXnpgo.lb*kelpXnpgo.filt,nclasses)$breaks), col=pal, cex=0.8)
+
+plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXnpgo.ub*kelpXnpgo.filt,nclasses)$class], cex=0.5,
+     xlab="Longitude", ylab="Latitude", main="upper tail")
+legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXnpgo.ub*kelpXnpgo.filt,nclasses)$breaks), col=pal, cex=0.8)
+
+plot(locs$Lon, locs$Lat, pch=19, col=pal[class_eq_int_sym(kelpXnpgo.diff,nclasses)$class], cex=0.5,
+     xlab="Longitude", ylab="Latitude", main="lower tail - upper tail")
+legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXno3.diff,nclasses)$breaks), col=pal, cex=0.8)
+dev.off()
+
+
+#make the environmental covariates averages within 50km!
+
+avg_by_dist2<-function(x, dmat, thresh){
+  
+  nbhd<-ifelse(dmat <= thresh, 1, 0)
+  nbhd.cor<-x * nbhd
+  return(apply(nbhd.cor, 1, mean, na.rm=T))
+  
+}
+
+
+
+
+moddat<-data.frame(kelp = coravg.diff.25km,
+                   no3 = avg_by_dist2(kelpXno3.diff, geog.dist, 25),
+                   waves = avg_by_dist2(kelpXwaves.diff, geog.dist, 25),
+                   npgo = avg_by_dist2(kelpXnpgo.diff, geog.dist, 25),
+                   lat = locs$Lat,
+                   lon = locs$Lon)
+
+moddat<-moddat[complete.cases(moddat),]
+
+mod<-gls(kelp ~ no3 + waves + npgo, correlation = corExp(form = ~ lon + lat, nugget=T), data=moddat)
+summary(mod)
+
+
+
+# moddat2<-data.frame(kelp = coravg.diff.25km,
+#                    no3 = kelpXno3.diff, geog.dist,
+#                    waves = kelpXwaves.diff,
+#                    npgo = kelpXnpgo.diff,
+#                    lat = locs$Lat,
+#                    lon = locs$Lon)
+# 
+# moddat2<-moddat2[complete.cases(moddat2),]
+# 
+# mod2<-gls(kelp ~ no3 + waves + npgo, correlation = corExp(form = ~ lon + lat), data=moddat2)
+# summary(mod2)
+
+pdf("scatterplot_by_association.pdf")
+par(xpd=T)
+plot(NA, NA, xlim=range(-1*waves.raw), ylim=range(kelp.raw), xlab="calmness", ylab="kelp biomass")
+legend('top', pch=16, col=c("blue","red"),legend=c("lower stronger","upper stronger"), ncol=2, inset=-0.08)
+
+for(ii in 1:nrow(waves)){
+  
+  if(is.na(kelpXwaves.diff[ii])){next}
+  
+  else if(kelpXwaves.diff[ii] < 0){
+    points(-1*waves.raw[ii,], kelp.raw[ii,], pch=16, col="blue")
+  }
+  else if(kelpXwaves.diff[ii] > 0){
+    points(-1*waves.raw[ii,], kelp.raw[ii,], pch=16, col="red")
+  }
+  
+}
+
+dev.off()
+
+
+pdf("example_strong_upper.pdf")
+par(mfrow=c(2,1), mar=c(4.1,4.1,2.1,4.1))
+plot(years, kelp[which.min(kelpXwaves.diff),], type="b", col="blue", ylab="Kelp biomass (residuals)",
+     main="strong upper tail association")
+par(new=T)
+plot(years, -1*waves[which.min(kelpXwaves.diff),], type="b", col="red", yaxt="n", ylab="")
+plot(-1*waves[which.min(kelpXwaves.diff),], kelp[which.min(kelpXwaves.diff),],
+     xlab="calmness (residuals)", ylab="kelp biomass (residuals)")
+dev.off()
+
+pdf("example_strong_lower.pdf")
+par(mfrow=c(2,1), mar=c(4.1,4.1,2.1,4.1))
+plot(years, kelp[which.max(kelpXwaves.diff),], type="b", col="blue", ylab="Kelp biomass (residuals)",
+     main="strong lower tail association")
+par(new=T)
+plot(years, -1*waves[which.max(kelpXwaves.diff),], type="b", col="red", yaxt="n", ylab="")
+plot(-1*waves[which.max(kelpXwaves.diff),], kelp[which.max(kelpXwaves.diff),],
+     xlab="calmness (residuals)", ylab="kelp biomass (residuals)")
+dev.off()
+
+
+cor.test(rowMeans(kelp.raw), kelpXwaves.diff, method="spearman")
+
+cor.test(-1*rowMeans(waves.raw), kelpXwaves.diff)
+
+pdf("calmness_vs_tail.pdf")
+plot(-1*rowMeans(waves.raw), kelpXwaves.diff, ylab="kelpXwaves lower - upper", xlab="Mean wave calmness")
+dev.off()
+
+
+
+## Investigate skewness of time series
+
+
+sample_skewness<-function(x){
+  #from Joanes, D. N.; Gill, C. A. (1998). "Comparing measures of sample skewness and kurtosis". 
+  # Journal of the Royal Statistical Society, Series D. 47 (1): 183–189. doi:10.1111/1467-9884.00122.
+  #this form is shown to have low RMSE in small samples from non-normal distributions
+  if(any(is.na(x))){
+    stop("x contains one or more NA values")
+  }
+  
+  n = length(x)
+  xbar = mean(x)
+  m3 = (1/n)*sum((x-xbar)^3)
+  s3 = ((1/(n-1))*sum((x-xbar)^2))^(3/2)
+  c = sqrt(n*(n-1))/(n-2)
+  return(c*m3/s3)
+  
+}
+
+
+## this is for individual kelp time series
+kelp_skew<-apply(kelp.raw, 1, sample_skewness)
+hist(kelp_skew) #distributions are primarily right-skewed (high outliers)
+
+plot(coravg.diff.25km, kelp_skew)
+cor.test(coravg.diff.25km, kelp_skew)
+
+
+moddat2<-data.frame(kelp_skew = kelp_skew,
+                   no3 = kelpXno3.diff,
+                   waves = kelpXwaves.diff,
+                   npgo =kelpXnpgo.diff,
+                   lat = locs$Lat,
+                   lon = locs$Lon)
+
+moddat2<-moddat2[complete.cases(moddat2),]
+
+mod2<-gls(kelp_skew ~ no3 + waves + npgo, correlation = corExp(form = ~ lon + lat, nugget=T), data=moddat2)
+summary(mod2) #no statistical significant effects
+
+
+#this is for spatially averaged kelp time series
+dthresh = 25 #km
+neighmat<-ifelse(geog.dist < dthresh, 1, 0)
+
+kelp_spatavg<-matrix(NA, nrow(kelp), ncol(kelp))
+
+for(ii in 1:nrow(kelp.raw)){
+  for(jj in 1:ncol(kelp.raw)){
+    
+    kelp_spatavg[ii,jj] <- mean(kelp.raw[,jj]*neighmat[ii,])
+    
+  }
+}
+
+kelp_spatavg_skew<-apply(kelp_spatavg, 1, sample_skewness)
+
+hist(kelp_spatavg_skew) #distributions are primarily right-skewed (high outliers)
+
+plot(coravg.diff.25km, kelp_spatavg_skew, xlim=c(-0.03,0.03))
+abline(v=0, col="red", lty=2)
+abline(h=0, col="blue", lty=2)
+mtext("lower tail association", at=-0.02)
+mtext("upper tail association", at=0.02)
+cor.test(coravg.diff.25km, kelp_spatavg_skew, method="spearman") 
+# positive correlation but funky dist'n so using Spearman; rho = 0.27, p << 0.0001
+
+
+moddat3<-data.frame(kelp = kelp_spatavg_skew,
+                   no3 = avg_by_dist2(kelpXno3.diff, geog.dist, 25),
+                   waves = avg_by_dist2(kelpXwaves.diff, geog.dist, 25),
+                   npgo = avg_by_dist2(kelpXnpgo.diff, geog.dist, 25),
+                   lat = locs$Lat,
+                   lon = locs$Lon)
+
+moddat3<-moddat3[complete.cases(moddat3),]
+
+mod3<-gls(kelp ~ no3 + waves + npgo, correlation = corExp(value=0.01, form = ~ lon + lat, nugget=T), data=moddat3)
+summary(mod3) #no significant effects; model does not fit without setting value of corExp, but results are
+# consistent across a range of effects
+
+
+## Make manuscript figures ------------------------------------------------------------------------
+
+#Fig 1: distance decay
+
+png("fig1_distdecay.png", width=6.5, height=3, units="in", res=300)
+
+par(mfrow=c(1,3), mgp=c(2.3,0.7,0), mar=c(2.1,2.1,1.6,1.1), cex.lab=1.3, oma=c(2,2,0,0))
+
+plot(sncf.lb$emp.spline$x, sncf.lb$emp.spline$y, col="red", type="l", ylim=c(0,0.4), lwd=2,
+     xlab="", ylab="", main="All coastline segments")
+lines(sncf.lb$emp.spline$x, sncf.lb$spline.quantiles[1,], col="red", lty=1)
+lines(sncf.lb$emp.spline$x, sncf.lb$spline.quantiles[3,], col="red", lty=1)
+lines(sncf.ub$emp.spline$x, sncf.ub$emp.spline$y, col="blue", lwd=2)
+lines(sncf.ub$emp.spline$x, sncf.ub$spline.quantiles[1,], col="blue", lty=1)
+lines(sncf.ub$emp.spline$x, sncf.ub$spline.quantiles[3,], col="blue", lty=1)
+text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.05*abs(diff(par("usr")[3:4])),"a)")
+legend("topright",lty=1,col=c("red","blue"),legend=c("lower tail","upper tail"),bty="n")
+
+plot(sncf.lb.c1$emp.spline$x, sncf.lb.c1$emp.spline$y, col="red", type="l", ylim=c(0,0.4), lwd=2,
+     xlab="", ylab="", main="Central California")
+lines(sncf.lb.c1$emp.spline$x, sncf.lb.c1$spline.quantiles[1,], col="red", lty=1)
+lines(sncf.lb.c1$emp.spline$x, sncf.lb.c1$spline.quantiles[3,], col="red", lty=1)
+lines(sncf.ub.c1$emp.spline$x, sncf.ub.c1$emp.spline$y, col="blue", lwd=2)
+lines(sncf.ub.c1$emp.spline$x, sncf.ub.c1$spline.quantiles[1,], col="blue", lty=1)
+lines(sncf.ub.c1$emp.spline$x, sncf.ub.c1$spline.quantiles[3,], col="blue", lty=1)
+text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.05*abs(diff(par("usr")[3:4])),"b)")
+#legend("topright",lty=1,col=c("red","blue"),legend=c("lower","upper"))
+
+plot(sncf.lb.c2$emp.spline$x, sncf.lb.c2$emp.spline$y, col="red", type="l", ylim=c(0,0.4), lwd=2,
+     xlab="", ylab="", main="Southern California")
+lines(sncf.lb.c2$emp.spline$x, sncf.lb.c2$spline.quantiles[1,], col="red", lty=1)
+lines(sncf.lb.c2$emp.spline$x, sncf.lb.c2$spline.quantiles[3,], col="red", lty=1)
+lines(sncf.ub.c2$emp.spline$x, sncf.ub.c2$emp.spline$y, col="blue", lwd=2)
+lines(sncf.ub.c2$emp.spline$x, sncf.ub.c2$spline.quantiles[1,], col="blue", lty=1)
+lines(sncf.ub.c2$emp.spline$x, sncf.ub.c2$spline.quantiles[3,], col="blue", lty=1)
+text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.05*abs(diff(par("usr")[3:4])),"c)")
+#legend("topright",lty=1,col=c("red","blue"),legend=c("lower","upper"))
+
+mtext("Distance (km)", side=1, outer=T, line=0.3)
+mtext("Partial Spearman correlation", side=2, outer=T, line=0.2)
+
+dev.off()
+
+
+## Fig 2: Matrices
+
+pal<-colorRampPalette(colors=c("red","white","blue"))
+
+axis.at=c(32,75,211,243,315,359)
+axis.labels=c("Monterey","Point. Sur","Morro Bay","Pt. Conception","Santa Monica","San Diego")
+axis.labels2<-c("MO","PS","MB","PC","SM","SD")
+
+
+png("fig2_matrices.png", width=3.2, height=8.5, units="in", res=300)
+
+par(mfrow=c(3,1), mgp=c(2,0.5,0), mar=c(1.1,1.1,1.5,1.1), oma=c(6,1.5,0,0))
+
+image.plot(1:361,1:361,cormat.ub.filt, xaxt="n", yaxt="n", legend.width=0.75, legend.mar=2.5, 
+           zlim=c(-0.6,0.6), col=pal(64))
+mtext("Upper tail synchrony matrix", cex=0.75)
+axis(side=1,at=axis.at, labels=FALSE)
+axis(side=2,at=axis.at, labels=FALSE)
+image.plot(1:361,1:361,cormat.lb.filt, xaxt="n", yaxt="n", legend.width=0.75, legend.mar=2.5, 
+           zlim=c(-0.6,0.6), col=pal(64))
+mtext("Lower tail synchrony matrix", cex=0.75)
+axis(side=1,at=axis.at, labels=FALSE)
+axis(side=2,at=axis.at, labels=FALSE)
+image.plot(1:361,1:361,cormat.diff.nodiag, xaxt="n", yaxt="n", legend.width=0.75, legend.mar=2.5, 
+           zlim=c(-0.6,0.6), col=pal(64))
+mtext("Tail association (uppper-lower)", cex=0.75)
+axis(side=1,at=axis.at, labels=axis.labels, las=2)
+axis(side=2,at=axis.at, labels=axis.labels2, las=2)
+
+dev.off()
+
+
+## Figure 3: Kelp synchrony map
+
+#states<-readOGR("/Users/jonathanwalter/Documents/Research/DATA/Basemaps/tl_us_states_2000/tl_2009_us_state00.shp")
+#cali<-states[states$NAME00=="California",]
+# plot(cali)
+# proj4string(cali)
+
+for (package in c('dplyr', 'tidyr', 'ggplot2', 'PBSmapping', 'animation', 'lme4', 'car', 'DHARMa', 'ggspatial',
+                  'sjmisc', 'geosphere', 'raster', 'sp', 'rgdal', #'SDMTools', 
+                  'ncf', 'maptools', 'multcomp',
+                  'gridExtra', 'ROCR', 'pROC', 'raster', 'rasterVis', 'reshape2', 'RColorBrewer', 'rgeos')) {
+  if (!require(package, character.only=T, quietly=T)) {
+    install.packages(package)
+    library(package, character.only=T)
+  }
+}
+
+# Import coastline data from NOAA
+coast.limits <- list(x = c(-125 + 360, -114 + 360), y = c(30, 39))
+
+# Coastline polygons
+coast.polys <- importGSHHS(gshhsDB="~/Box Sync/Coastline vectors from GSHHG/gshhg-bin-2.3.7/gshhs_f.b",
+                           xlim=coast.limits$x, ylim=coast.limits$y, maxLevel=1, n=0)
+coast.polys$X <- coast.polys$X - 360  # Get longitude back into units of degrees east
+coast.polys.sp <- maptools::PolySet2SpatialPolygons(coast.polys, close_polys=FALSE) # Convert to spatial polygons
+polys <- fortify(coast.polys)
+
+# # Coastline borders
+# coast.border <- importGSHHS(gshhsDB="~/Box Sync/Coastline vectors from GSHHG/gshhg-bin-2.3.7/wdb_borders_f.b",
+#                             xlim=coast.limits$x, ylim=coast.limits$y, maxLevel=1, n=0)
+# coast.border$X <- coast.border$X - 360  # Get longitude back into units of degrees east
+# coast.border.sp <- maptools::PolySet2SpatialPolygons(coast.border, close_polys=FALSE) # Convert to spatial polygons
+# border <- fortify(coast.border)
+
+#plot(coast.border.sp)
+
+thin <- seq(1, nrow(locs), by=5)
+
+nclasses=8
+pal<-brewer.pal(nclasses,"RdYlBu")
+tpal<-c("#D7302780", "#F46D4380", "#FDAE6180", "#FEE09080", "#E0F3F880", "#ABD9E980", "#74ADD180", "#4575B480")
+
+png("fig3_kelpsynch_maps.png", width=6.5, height=3, res=300, units="in")
+
+par(mfrow=c(1,3), mar=c(0.5,0.5,2,0.5))
+
+plot(coast.polys.sp, xlim=range(locs$Lon), ylim=range(locs$Lat))
+points(locs$Lon[thin], locs$Lat[thin], pch=19, 
+       col=pal[class_eq_int_sym(coravg.ub.25km[thin],nclasses)$class], cex=0.6)
+     #xlab="Longitude", ylab="Latitude", main="lower tail")
+mtext("a)",at=par("usr")[1]+0.05*diff(par("usr")[1:2]), side=3, cex=0.75, line=0.5)
+mtext("Upper tail synchrony", cex=0.75, line=0.5)
+#rect(bbox(cali)[1],bbox(cali)[2],bbox(cali)[3],bbox(cali)[4])
+legend("topright", pch=19, 
+       legend=legtext(class_eq_int_sym(coravg.lb.25km,nclasses)$breaks, digits=3)[5:8]
+       , col=pal[5:8], cex=0.8)
+
+plot(coast.polys.sp, xlim=range(locs$Lon), ylim=range(locs$Lat))
+points(locs$Lon[thin], locs$Lat[thin], pch=19, 
+       col=pal[class_eq_int_sym(coravg.lb.25km[thin],nclasses)$class], cex=0.6,
+     xlab="Longitude", ylab="Latitude", main="upper tail")
+mtext("Lower tail synchrony", cex=0.75, line=0.5)
+mtext("b)",at=par("usr")[1]+0.05*diff(par("usr")[1:2]), side=3, cex=0.75, line=0.5)
+legend("topright", pch=19, legend=legtext(class_eq_int_sym(coravg.ub.25km,nclasses)$breaks, digits=3)[5:8], 
+       col=pal[5:8], cex=0.8)
+
+plot(coast.polys.sp, xlim=range(locs$Lon), ylim=range(locs$Lat))
+points(locs$Lon[thin], locs$Lat[thin], pch=19, 
+       col=pal[class_eq_int_sym(coravg.diff.25km[thin],nclasses)$class], cex=0.6,
+     xlab="Longitude", ylab="Latitude", main="lower tail - upper tail")
+mtext("c)",at=par("usr")[1]+0.05*diff(par("usr")[1:2]), side=3, cex=0.75, line=0.5)
+mtext("Tail association strength", cex=0.75, line=0.5)
+legend("topright", pch=19, legend=legtext(class_eq_int_sym(coravg.diff.25km,nclasses)$breaks, digits=3)
+       , col=pal, cex=0.8)
+segments(-121.8, 36.7, -120.85, 37.735, col="grey")
+segments(-121.45, 35.92, -120.85, 35.8, col="grey")
+
+par(new=T, fig=c(0.77, 0.85, 0.6, 0.9), mar=c(0.05,0.05,0.05,0.05))
+plot(coast.polys.sp, ylim=c(36.1,36.5), xlim=c(-122,-121.5))
+points(locs$Lon, locs$Lat, pch=19,
+       col=pal[class_eq_int_sym(coravg.diff.25km,nclasses)$class], cex=0.6)
+rect(-122.005, 35.925, -121.485, 36.676, col=NA, border="grey")
+
+
+dev.off()
+
+
+## Figure 4: Driver tail association maps
+png("fig4_drivertail_maps.png", width=6.5, height=3, res=300, units="in")
+
+par(mfrow=c(1,3),mar=c(0.5,0.5,2,0.5))
+
+plot(coast.polys.sp, xlim=range(locs$Lon), ylim=range(locs$Lat))
+points(locs$Lon[thin], locs$Lat[thin], pch=19, 
+       col=pal[class_eq_int_sym(kelpXwaves.diff[thin],nclasses)$class], cex=0.6,
+       xlab="Longitude", ylab="Latitude", main="lower tail")
+mtext("a)",at=par("usr")[1]+0.05*diff(par("usr")[1:2]), side=3, cex=0.75, line=0.5)
+mtext("Wave calmness", cex=0.75, line=0.5)
+#rect(bbox(cali)[1],bbox(cali)[2],bbox(cali)[3],bbox(cali)[4])
+legend("topright", pch=19, 
+       legend=legtext(class_eq_int_sym(kelpXwaves.diff,nclasses)$breaks, digits=3)
+       , col=pal, cex=0.8)
+segments(-121.8, 36.7, -120.85, 37.735, col="grey")
+segments(-121.45, 35.92, -120.85, 35.8, col="grey")
+
+plot(coast.polys.sp, xlim=range(locs$Lon), ylim=range(locs$Lat))
+points(locs$Lon[thin], locs$Lat[thin], pch=19, 
+       col=pal[class_eq_int_sym(kelpXno3.diff[thin],nclasses)$class], cex=0.6,
+       xlab="Longitude", ylab="Latitude", main="upper tail")
+mtext("b)",at=par("usr")[1]+0.05*diff(par("usr")[1:2]), side=3, cex=0.75, line=0.5)
+mtext("Nitrate concentration", cex=0.75, line=0.5)
+legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXno3.diff,nclasses)$breaks, digits=3), 
+       col=pal, cex=0.8)
+segments(-121.8, 36.7, -120.85, 37.735, col="grey")
+segments(-121.45, 35.92, -120.85, 35.8, col="grey")
+
+plot(coast.polys.sp, xlim=range(locs$Lon), ylim=range(locs$Lat))
+points(locs$Lon[thin], locs$Lat[thin], pch=19, 
+       col=pal[class_eq_int_sym(kelpXnpgo.diff[thin],nclasses)$class], cex=0.6,
+       xlab="Longitude", ylab="Latitude", main="lower tail - upper tail")
+mtext("c)",at=par("usr")[1]+0.05*diff(par("usr")[1:2]), side=3, cex=0.75, line=0.5)
+mtext("NPGO", cex=0.75, line=0.5)
+legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXnpgo.diff,nclasses)$breaks, digits=3)
+       , col=pal, cex=0.8)
+segments(-121.8, 36.7, -120.85, 37.735, col="grey")
+segments(-121.45, 35.92, -120.85, 35.8, col="grey")
+
+par(new=T, fig=c(0.104, 0.184, 0.6, 0.9), mar=c(0.05,0.05,0.05,0.05))
+plot(coast.polys.sp, ylim=c(36.1,36.5), xlim=c(-122,-121.5))
+points(locs$Lon, locs$Lat, pch=19,
+       col=pal[class_eq_int_sym(kelpXwaves.diff,nclasses)$class], cex=0.6)
+rect(-122.005, 35.925, -121.485, 36.676, col=NA, border="grey")
+
+par(new=T, fig=c(0.437, 0.517, 0.6, 0.9), mar=c(0.05,0.05,0.05,0.05))
+plot(coast.polys.sp, ylim=c(36.1,36.5), xlim=c(-122,-121.5))
+points(locs$Lon, locs$Lat, pch=19,
+       col=pal[class_eq_int_sym(kelpXno3.diff,nclasses)$class], cex=0.6)
+rect(-122.005, 35.925, -121.485, 36.676, col=NA, border="grey")
+
+par(new=T, fig=c(0.77, 0.85, 0.6, 0.9), mar=c(0.05,0.05,0.05,0.05))
+plot(coast.polys.sp, ylim=c(36.1,36.5), xlim=c(-122,-121.5))
+points(locs$Lon, locs$Lat, pch=19,
+       col=pal[class_eq_int_sym(kelpXnpgo.diff,nclasses)$class], cex=0.6)
+rect(-122.005, 35.925, -121.485, 36.676, col=NA, border="grey")
+
+dev.off()
+
+
+## Figure 5: Calmness versus tail association
+
+png("fig5_calmnTailAssoc.png",units="in",res=300,height=3.5,width=6.5)
+
+layout(matrix(c(1,1,2,3), nrow=2, ncol=2), widths=c(0.4,0.6,0.6))
+
+par(mar=c(3.1,3.1,1.25,1.1), mgp=c(2,0.8,0), cex.axis=0.9)
+
+plot(-1*rowMeans(waves.raw), kelpXwaves.diff, ylab="Tail association (upper - lower)", 
+     xlab="Mean wave calmness", pch=19)
+abline(h=0, col="grey", lty=2)
+abline(v=median(-1*rowMeans(waves.raw)), col="grey", lty=2)
+
+mtext("Pearson corr. = -0.26, p < 0.0001", cex=0.75)
+
+plot(NA, NA, xlim=c(0,50), ylim=c(-1,1), xlab="Time", ylab="Kelp biomass")
+mtext("Upper tail association (0.5)", cex=0.75)
+
+plot(NA, NA, xlim=c(0,50), ylim=c(-1,1), xlab="Time", ylab="Kelp biomass")
+mtext("Lower tail association (-0.5)", cex=0.75)
+
+dev.off()

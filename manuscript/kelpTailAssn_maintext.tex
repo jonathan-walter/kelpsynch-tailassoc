@@ -1,0 +1,361 @@
+\documentclass[12pt, oneside]{article}
+\usepackage{geometry}                		
+\geometry{letterpaper}                   		
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{hyperref}
+\usepackage{fancybox}
+\usepackage[centertags]{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}			
+\usepackage{natbib}				
+\usepackage{fullpage}
+\usepackage{placeins}
+\usepackage{setspace}
+\usepackage{lineno}
+\usepackage{color}
+\usepackage{graphicx}% http://ctan.org/pkg/graphicx
+\usepackage{multirow}% http://ctan.org/pkg/multirow
+\usepackage{booktabs}% http://ctan.org/pkg/booktabs
+\usepackage{etoolbox}
+\usepackage{filecontents}
+\usepackage{caption} 
+\captionsetup[table]{skip=10pt}
+\newbool{MyRefNumbers}
+\booltrue{MyRefNumbers}
+
+%\usepackage{figcaps}
+%\usepackage[tablesfirst,nolists]{endfloat}
+\usepackage{authblk}
+
+\DeclareRobustCommand{\firstsecond}[2]{#1}
+
+\newcommand{\mb}{\mathbf}
+\newcommand{\bs}{\boldsymbol}
+\newcommand{\wt}{\widetilde}
+\newcommand{\s}{^{(s)}}
+
+\title{Tail-dependent spatial synchrony of kelp forests}
+
+\author[1]{Jonathan A. Walter}
+\author[2]{Tom W. Bell}
+\author[3]{Lawrence W. Sheppard}
+\author[4]{Kyle C. Cavanaugh}
+\author[3]{Daniel C. Reuman}
+\author[1]{Max C.N. Castorani}
+
+\affil[1]{Department of Environmental Sciences, University of Virginia}
+\affil[2]{Woods Hole Oceanographic Institution (?)}
+\affil[3]{Department of Ecology and Evolutionary Biology and Kansas Biological Survey, University of Kansas}
+\affil[4]{Department of Geography, University of California, Los Angeles}
+
+\date{}
+
+
+\begin{document}
+
+\maketitle
+
+\doublespacing
+\linenumbers
+
+%\newpage
+
+\section{Introduction}
+
+%Spatial synchrony is important and we keep learning new things by finding new ways to study it.
+%\begin{enumerate}
+ %\item{Define spatial synchrony and its importance for stability/persistence}
+ %\item{Even though we've studied it for a long time, recent methodological advances are revealing new aspects of synchrony and strengthening inference into causes}
+ %\item{Example: geographies of synchrony}
+%\end{enumerate}
+
+Spatial synchrony, the tendency for fluctuations to be correlated across locations, is a common population dynamic phenomenon with important consequences for extinction risk and aggregate population variability (REF). 
+All else being equal, a more synchronous ensemble of populations has higher extinction risk (REF) and its total across all populations has greater temporal variance (REF) than a less synchronous ensemble.
+Even though ecologists' interest in spatial synchrony is longstanding, recent methodological advances are revealing new aspects of the phenomenon and strengthening inference into its mechanisms and consequences for ecological and socio-environmental systems (REFS).
+For example, ``geographies of synchrony" (REF) leverage spatial patterns beyond the canonical focus on how synchrony declines with increasing distance between locations to reveal previously overlooked structural patterns and mechanisms that both drive synchrony and modify--but do not cause--it (REFS). 
+
+%\noindent Tail association and how it can help us understand kelp synchrony
+%\begin{enumerate}
+%\item{Define tail association}
+%\item{Tail association is related to extinction risk/persistence/stability}
+%\item{Explain how tail association leads to synchronized booms vs synchronized crashes, and the consequences}
+%\item{Tail association in synchrony is little studied empirically, can be integrated with geography of synchrony}
+%\end{enumerate}
+
+Another innovation with potential to reveal novel patterns in synchrony and strengthen understanding of this phenomenon is tail association, the tendency for the strength of relatedness between two variables to differ between the upper and lower tails (REFS).
+Tail association among ecological variables is common (REF), notably in synchrony among interacting species in a community (REF). 
+However, tail association in spatial synchrony is essentially unstudied, so its prevalence, mechanisms, and consequence in empirical populations are not yet well understood.
+In principle, tail association in synchrony should have substantial implications for extinction risk.
+An ensemble of populations exhibiting stronger relationships in the upper tails will have synchronized population "booms" leading to widespread periods of high abundance, but populations exhibiting stronger relationships in the lower tails will experience synchronized crashes.
+Synchronized population crashes inhibiting dispersal-mediated rescue are a known consequence of synchrony, generally (REF), and for populations with strong lower tail association the extinction risk will be greater than an ensemble of populations with equal spatial synchrony and no tail association. 
+
+%\noindent Kelp forests are vital ecosystems.
+%\begin{enumerate}
+%\item{Kelp forests are vital nursery habitats, provide resource subsidies to beaches, etc.}
+%\item{Giant kelp is the dominant species from A\~{n}o Nuevo, California to the USA-Mexico border.}
+%\item{Kelp was harmed by oceanographic events associated with climate change and recovery is spatially variable}
+%\item{We need to better understand spatiotemporal drivers of kelp dynamics}
+%\end{enumerate}
+
+Here, we study tail association in spatial synchrony in giant kelp (\textit{Macrocystis pyrifera}), a superb model organism for studying spatiotemporal dynamics (REFS) and a foundation species of a productive and biodiverse coastal ecosystem (REFS).
+This globally distributed species forms a conspicuous monoculture surface canopy that makes it amenable to remote measurement over large areas and decadal timescales (REFS), and its rapid growth and reproduction allows for the examination of many generational cycles relative to many terrestrial ecosystems (REF). 
+In Central and Southern California, spatial synchrony of giant kelp exhibits two characteristic spatial scales reflecting complex drivers of giant kelp abundance (REFS). Over distances from tens of meters to $\approx 1.5$ km, spatial synchrony declines rapidly with distance, approximately matching the spatial scale of recruitment and spatial autocorrelation in abundances of sea urchin grazers (REF). 
+Over much longer distances, > 100 km, synchrony declines more slowly with distance, similar to the characteristic spatial scales of regional-scale oceanographic patterns in environmental drivers including nutrient concentrations and wave exposure (REFS).
+Sub-regional spatial structure in giant kelp dynamics can also be attributed to differences in wave exposure (REF) and other evidence (REFS) support that differences in wave exposure are a major source of spatial structure in giant kelp dynamics on the California coast.
+North of Point Conception, excepting small protected embayments, the California coast is exposed to strong seasonal wave action, with strong winter waves tending to cause large seasonal declines in kelp canopy biomass.
+Rapid growth enables kelp canopy recovery during the spring and summer, provided adequate nutrient availability. 
+%The globally distributed macroalga giant kelp (Macrocystis pyrifera), is a superb model organism to examine the relative roles of the external environment and internal biotic factors on abundance dynamics across vast spatial and temporal scales. The conspicuous monoculture surface canopy of giant kelp is amenable to remote measurement (Cavanaugh et al. 2011) and its rapid growth and reproduction allows for the examination of many generational cycles relative to most terrestrial ecosystems (Reed et al. 2008).
+
+\noindent What we know and don't know about spatiotemporal dynamics of kelp forests
+\begin{enumerate}
+\item{Spatial synchrony decays quickly, but remains positive over 100s of km}
+\item{Different dynamics north/south of Point Conception}
+\item{Waves, nitrate concentrations drive seasonal/interannual variability, climate oscillations influence multi-annual patterns like crashes with strong ENSO.}
+\item{Frequently extirpated from wave-exposed sites, dispersal important for recolonization}
+\item{Somewhat paradoxically, Central California is most wave exposed and kelp suffers frequent crashes, but kelp also tends to be most abundant at seasonal peaks.}
+\end{enumerate}
+
+\noindent Objectives/Questions
+\begin{enumerate}
+\item{Does giant kelp exhibit consistent or geographically dependent tail dependence in spatial synchrony?}
+\item{Is tail dependence in giant kelp spatial synchrony associated with tail dependence in the relationship between giant kelp biomass and wave intensity, nitrate, and the NPGO?}
+\item{What are the consequences for persistence and stability of kelp forests?}
+\end{enumerate}
+
+%We investigated whether the strength of spatial synchrony in giant kelp biomass in central and southern California is tail-dependent using partial Spearman correlations.
+%Additionally, we evaluated whether tail dependence in kelp synchrony reflects tail dependence in the association between kelp biomass and likely environmental drivers waves,  nitrate, and the NPGO.
+
+\section{Data}
+
+We used annualized, minimally cleaned data on kelp biomass, nitrate concentration, waves, and climate oscillations.
+Data were annualized by averaging quarterly biomass estimates and linear trends over time were removed.
+Because our analyses are an elaboration on Spearman rank correlation, no transformation or standardization was applied to the data.
+Analyses were performed on a selection of 361 ``persistent" kelp sites, i.e., those which had 3 or fewer years in which kelp biomass as 0 or NA for all four quarters (Figure \ref{fig:sitemap}).
+
+\begin{figure}
+    \centering
+    \includegraphics[width=.65\textwidth]{"locs_by_cluster"}
+    \caption{Map of study locations by cluster. Central and Southern California are divided at Point Conception.}
+    \label{fig:sitemap}
+\end{figure}
+
+\section{Tail dependence in distance decay}
+
+We first asked whether distance-decay in synchrony depended on whether we considered lower or upper tails of kelp biomass, where lower tails were quantiles 0 to 0.5, and upper tails were quantiles 0.5 to 1.
+We measured partial Spearman correlations between all pairs of locations at lower and upper tails, and used smoothing splines to visualize the average distance decay function for lower and upper tails.
+We also considered whether the characteristic distance decay in synchrony, and its tail dependence, differ between the central and southern coasts by repeating this analyses within each cluster group.
+
+Kelp synchrony was not consistently greater in the upper or lower tails, as a function of distance, over the whole coast or considering only central or southern California (Figure \ref{fig:distdecall}-\ref{fig:distdecsouth}).
+Although they were sometimes divergent, in most cases the 95\% confidence intervals remained overlapping.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=.65\textwidth]{"dist_decay_allsites"}
+    \caption{Distance decay in synchrony for lower and upper distributional tails, considering all sites. Outer, thinner lines indicate 95\% confidence intervals}
+    \label{fig:distdecall}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=.65\textwidth]{"dist_decay_central"}
+    \caption{Distance decay in synchrony for lower and upper distributional tails for Central California. Outer, thinner lines indicate 95\% confidence intervals}
+    \label{fig:distdeccentl}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=.65\textwidth]{"dist_decay_southern"}
+    \caption{Distance decay in synchrony for lower and upper distributional tails for Southern California. Outer, thinner lines indicate 95\% confidence intervals}
+    \label{fig:distdecsouth}
+\end{figure}
+
+
+\section{Geographies of tail dependence}
+
+We used three main approaches to explore more detailed geographies of tail dependence in kelp synchrony.
+First, we looked directly at a matrix expressing the strength of tail dependence in synchrony.
+When assessing tail dependence, we focused only on location pairs expressing a positive Spearman correlation in kelp biomass, and measured tail dependence as $cor_{lb} - cor{ub}$, where $cor_{lb}$ denotes the partial Spearman correlation in the lower tail.
+These were visualized as a matrix indexed by location, and the distribution was summarized in a histogram.
+
+\begin{figure}
+   \centering
+   \includegraphics[width=0.65\textwidth]{"hist_kelpsynch_taildiff"}
+   \caption{Histogram of tail dependence in kelp synchrony.}
+   \label{fig:synchhist}
+\end{figure}
+
+\begin{figure}
+   \centering
+   \includegraphics[width=0.95\textwidth]{"synchmat_kelp_taildiff"}
+   \caption{Matrix of tail dependence in kelp synchrony.}
+   \label{fig:synchmat}
+\end{figure}
+
+There is a slight tendency for lower-tail synchrony to be greater than upper-tail synchrony, but this varied widely.
+The matrix reveals that there are strong positive and negative values in somewhat block-like formations, which is suggestive of complex geography of tail association in kelp synchrony.
+However, these block-like structures seem less pronounced than for other geography of synchrony problems we have considered.
+
+Second, to better understand how tail dependent kelp synchrony varied spatially, we mapped tail dependence in kelp synchrony by averaging the tail-specific synchrony within a 25 km radius.
+The 25 km radius was chosen for two reasons: a) kelp synchrony declined rapidly over distances up to ca. 25 km, and more slowly thereafter; b) this was a distance at which there was relatively strong tail dependence in synchrony. 
+Tail dependence in 25 km synchrony was uniformly weak in southern California, and strongest along a stretch of coastline south from Big Sur. 
+
+\begin{figure}
+    \centering
+    \includegraphics{"sync_taildiff_25km_3panel"}
+    \caption{Tail dependence in kelp synchrony within 25 km. Positive values indicate that lower tail synchrony is greater than upper tail synchrony.}
+    \label{fig:taildiff_25km}
+\end{figure}
+
+
+Third, we statistically compare the synchrony matrices for the lower and upper tails.
+Dan developed an algorithm for creating surrogate time series with (approximately) identical spatial correlation structure, but in which tail dependence in synchrony arises through sampling variation, hence providing a useful null hypothesis for the absence of tail dependence.
+We generated 1000 sets of surrogate kelp biomass time series and computer their synchrony matrices for upper and lower tails using partial Spearman correlation.
+Location pairs for which the empirical Spearman correlation was negative were omitted.
+We computed two statistics and obtained $p$-values for them by comparing their empirical values to their distribution in the surrogate datasets.
+The first is a test of the degree of tail dependence, and is the sum of the element-wise differences between the lower tail synchrony matrix and the upper tail synchrony matrix.
+The second is a test for differences in the geography of synchrony at lower and upper tails, and is the Spearman correlation between the lower tail synchrony matrix and the upper tail synchrony matrix.
+
+The overall degree of tail dependence in synchrony was not statistically significant (rank against surrogates = 0.55).
+However, differences in geographies of synchrony between upper and lower tails were statistically significant: the empirical correlation between synchrony at lower and upper tails was larger than only 1\% of surrogates.
+The lack of significance in the overall degree of tail dependence seems consistent with the spline correlogram results and the median tail dependence in synchrony being close to zero  (Figure \ref{fig:hist_kelpsynch_taildiff})..
+The geography of tail dependence, on the other hand, appears to have a meaningful amount of spatial structure (Figure \ref{fig:synchmat_kelp_taildiff}).
+
+
+\section{Tail dependence in associations with environmental drivers}
+
+We next tested tail dependence in associations between kelp and three environmental drivers: waves, nitrate concentration, and the NPGO.
+These variables have in other studies been identified as drivers of spatial synchrony in kelp biomass.
+The goal is to begin to infer whether tail-dependent relationships with environmental variables that are putative drivers of kelp synchrony can explain tail dependence in kelp synchrony.
+Below are histograms of tailedness of association between these variables, showing whether there is an overall tendency for associations to be stronger in the lower or upper tail, as well as maps of these values.
+Because the expected correlation between kelp and waves is negative, we transformed it to a "calmness" variable by taking $-1*waves$.
+Similar to kelp spatial synchrony analyses, locations with negative Spearman correlations between kelp biomass and any environmental driver were omitted, leaving 193 of 282 locations.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=.65\textwidth]{"hist_taildiff_kelpXno3"}
+    \caption{Tail dependence in the association between kelp and nitrate concentration. Positive values indicate that lower tail association is greater than upper tail association.
+     The red vertical line indicates the median.}
+    \label{fig:hist_taildiff_kelpXno3}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=.65\textwidth]{"hist_taildiff_kelpXwaves"}
+    \caption{Tail dependence in the association between kelp and wave calmness. Positive values indicate that lower tail association is greater than upper tail association.
+     The red vertical line indicates the median.}
+    \label{fig:hist_taildiff_kelpXwaves}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=.65\textwidth]{"hist_taildiff_kelpXnpgo"}
+    \caption{Tail dependence in the association between kelp and the NPGO. Positive values indicate that lower tail association is greater than upper tail association.
+    The red vertical line indicates the median.}
+    \label{fig:hist_taildiff_kelpXnpgo}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics{"map_taildiff_kelpXno3_3panel"}
+    \caption{Tail dependence in the association between kelp and nitrate concentration. Positive values indicate that lower tail association is greater than upper tail association.}
+    \label{fig:taildiff_kelpXno3}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics{"map_taildiff_kelpXwaves_3panel"}
+    \caption{Tail dependence in the association between kelp and wave calmness. Positive values indicate that lower tail association is greater than upper tail association.}
+    \label{fig:taildiff_kelpXwaves}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics{"map_taildiff_kelpXnpgo_3panel"}
+    \caption{Tail dependence in the association between kelp and the NPGO. Positive values indicate that lower tail association is greater than upper tail association.}
+    \label{fig:taildiff_kelpXnpgo}
+\end{figure}
+
+The histograms and maps suggest interesting patterns. 
+Nitrate and NPGO have medians that are very close to zero and the distributions are fairly symmetric, indicating that there is variability in tail association but without a systematic tendency for relationships to be stronger at lower or upper tails. 
+The distribution for wave calmness, however, is suggestive of a tendency for stronger association in the upper tails, i.e., when waves are calm and kelp biomass is high. 
+
+The maps also suggest there are areas where particular tail associations tend to predominate.
+Comparing Figure \ref{fig:taildiff_kelpXwaves} to Figure \ref{fig:taildiff_25km}, an area with stronger upper-tail synchrony in central California tended to have stronger upper-tail associations with wave calmness.
+There also seems to be a visual correspondence between tail association in local kelp synchrony and tail association in NPGO over the stretch of coastline just south of Point Conception (Figure \ref{fig:taildiff_kelpXnpgo}).
+This can be formally tested in a spatial multiple regression framework with correction for spatial autocorrelation, where the response variable is the tail dependence of synchrony within distances of 25 km, and the predictor variables are the mean tail dependence in correlation between kelp and waves, nitrate, and NPGO within the same 25 km radii.
+This test detected a strongly statistically significant ($p = 0.0001$) positive ($\beta = 0.106$) relationship between tail association in kelp synchrony and tail association in the relationship between kelp biomass and wave calmness.
+There is also a significant positive correlation between wave calmness and tail association in the relationship between kelp biomass and wave calmness (Pearson correlation = 0.260, $p < 0.0001$; Figure \ref{fig:calm_v_tail}).
+ 
+\begin{figure}
+   \centering
+   \includegraphics[width=.65\textwidth]{"calmness_vs_tail"}
+   \caption{Scatterplot of tail association in the relationship between kelp biomass and wave calmness.}
+   \label{fig:calm_v_tail}
+\end{figure}
+
+\begin{figure}
+   \centering
+   \includegraphics[width=.65\textwidth]{"scatterplot_by_association"}
+   \caption{Scatterplot of kelp biomass versus wave calmness. Points are colored depending on whether the location they are from exhibits stronger lower (blue) or upper (red) tail association in the relationship between kelp biomass and wave calmness. Note that the data are plotted on their natural scale, but analyses were performed on detrended time series.}
+   \label{fig:assocscatter}
+\end{figure}
+
+\begin{figure}
+   \centering
+   \includegraphics[width=.65\textwidth]{"example_strong_lower"}
+   \caption{An example of a time series with strong lower tail association in the relationship between kelp and wave calmness}
+   \label{fig:lowexample}
+\end{figure}
+
+\begin{figure}
+   \centering
+   \includegraphics[width=.65\textwidth]{"example_strong_upper"}
+   \caption{An example of a time series with strong upper tail association in the relationship between kelp and wave calmness}
+   \label{fig:lowexample}
+\end{figure}
+
+
+
+\section{Discussion}
+
+\noindent Synthesis of key results
+\begin{enumerate}
+\item{There is a geography of tail dependence in kelp spatial synchrony}
+\item{This is partly explained by geographic patterns in tail dependence in the association between calmness/wave intensity and kelp}
+\item{This itself can be explained by where wave exposure at a site sits relative to a threshold where small changes in wave height have large effects on kelp}
+\item{Geographic patterns in tail association explain patterns of disturbance/recovery}
+\end{enumerate}
+
+\noindent Contextualize with other work on spatiotemporal kelp dynamics
+\begin{enumerate}
+\item{Distance-decay of synchrony looks similar to what's been observed before}
+\item{Different patterns of variation and effects of waves between Central and Southern CA}
+\item{Why are no3 and npgo not important to geography of tail association?}
+\end{enumerate}
+
+\noindent Elaborate on tail association and its relationship to stability/persistence
+\begin{enumerate}
+\item{This could help explain why central coast has higher average kelp biomass and there's kelp in most years even though it commonly gets destroyed in the winter}
+\item{Stability of kelp is important because it's the base of a vital ecosystem}
+\item{Speculation: what if climate change makes big crashes more common? Is kelp resilient enough?}
+\end{enumerate}
+
+\noindent There's a lot of novelty here.
+\begin{enumerate}
+\item{Newly introduced method}
+\item{First time showing that there's a geography of tail association in spatial synchrony}
+\item{First time linking tail association in synchrony to mechanism}
+\item{This is probably under-appreciated because tail association is common}
+\item{This work provides a roadmap for future investigations}
+\end{enumerate}
+
+%\section{Thoughts and next steps}
+
+%These results, (in my opinion) much more convincingly convey the story that there is tail dependence in kelp synchrony in the sense that there is meaningful spatial structure in the degree of tailedness, and that this can be partly attributed to tail dependence in the association between kelp and synchronizing drivers, specifically waves.
+%I think that this is the better part of a paper, with the most likely addition being some kind of elaboration/refinement on the relationship between tail dependence in kelp synchrony and tail dependence in associations with drivers of synchrony.
+%For example, looking at additional possible drivers like other climate indices, and if more covariates are added performing a model selection exercise.
+
+%I also think there is at least conceptual work to be done on why we see particular patterns of tail dependence in the relationship between kelp and its environmental drivers, and possibly further analytical work, although I don't currently have a clear picture of what that would look like. 
+
+\end{document}

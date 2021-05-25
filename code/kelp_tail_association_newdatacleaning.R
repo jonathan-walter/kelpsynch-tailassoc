@@ -8,12 +8,12 @@ library(nlme)
 library(fields)
 library(copula)
 library(mvtnorm)
-library(matrixcalc)
+#library(matrixcalc)
 library(Matrix)
 library(grDevices)
 library(rgdal)
 
-setwd("/Users/jonathanwalter/GitHub/kelpsynch-tailassoc")
+setwd("~/GitHub/kelpsynch-tailassoc")
 
 source("./code/partialSpearman.R")
 source("./code/ncsurrog.R")
@@ -705,7 +705,7 @@ dev.off()
 pal<-colorRampPalette(colors=c("red","white","blue"))
 
 axis.at=c(32,75,211,243,315,359)
-axis.labels=c("Monterey","Point. Sur","Morro Bay","Pt. Conception","Santa Monica","San Diego")
+axis.labels=c("Monterey","Point Sur","Morro Bay","Pt. Conception","Santa Monica","San Diego")
 axis.labels2<-c("MO","PS","MB","PC","SM","SD")
 
 
@@ -716,13 +716,13 @@ par(mfrow=c(3,1), mgp=c(2,0.5,0), mar=c(1.1,1.1,1.5,1.1), oma=c(6,1.5,0,0))
 image.plot(1:361,1:361,cormat.ub.filt, xaxt="n", yaxt="n", legend.width=0.75, legend.mar=2.5, 
            zlim=c(-0.6,0.6), col=pal(64))
 mtext("Upper tail synchrony matrix", cex=0.75)
-axis(side=1,at=axis.at, labels=FALSE)
-axis(side=2,at=axis.at, labels=FALSE)
+axis(side=1,at=axis.at, labels=axis.labels2)
+axis(side=2,at=axis.at, labels=axis.labels2)
 image.plot(1:361,1:361,cormat.lb.filt, xaxt="n", yaxt="n", legend.width=0.75, legend.mar=2.5, 
            zlim=c(-0.6,0.6), col=pal(64))
 mtext("Lower tail synchrony matrix", cex=0.75)
-axis(side=1,at=axis.at, labels=FALSE)
-axis(side=2,at=axis.at, labels=FALSE)
+axis(side=1,at=axis.at, labels=axis.labels2)
+axis(side=2,at=axis.at, labels=axis.labels2)
 image.plot(1:361,1:361,cormat.diff.nodiag, xaxt="n", yaxt="n", legend.width=0.75, legend.mar=2.5, 
            zlim=c(-0.6,0.6), col=pal(64))
 mtext("Tail association (uppper-lower)", cex=0.75)
@@ -774,6 +774,7 @@ nclasses=8
 pal<-brewer.pal(nclasses,"RdYlBu")
 tpal<-c("#D7302780", "#F46D4380", "#FDAE6180", "#FEE09080", "#E0F3F880", "#ABD9E980", "#74ADD180", "#4575B480")
 
+
 png("./manuscript/fig3_kelpsynch_maps.png", width=6.5, height=3, res=300, units="in")
 
 par(mfrow=c(1,3), mar=c(0.5,0.5,2,0.5))
@@ -806,14 +807,22 @@ mtext("c)",at=par("usr")[1]+0.05*diff(par("usr")[1:2]), side=3, cex=0.75, line=0
 mtext("Tail association strength", cex=0.75, line=0.5)
 legend("topright", pch=19, legend=legtext(class_eq_int_sym(coravg.diff.25km,nclasses)$breaks, digits=3)
        , col=pal, cex=0.8)
-segments(-121.8, 36.7, -120.85, 37.735, col="grey")
+segments(-121.8, 36.7, -120.85, 37.735, col="grey") #upper inset
 segments(-121.45, 35.92, -120.85, 35.8, col="grey")
+segments(-120.649, 34.65, -121.995, 33.38, col="grey") #lower inset
+segments(-119.657, 34.355, -119.195, 33.38, col="grey")
 
-par(new=T, fig=c(0.77, 0.85, 0.6, 0.9), mar=c(0.05,0.05,0.05,0.05))
+par(new=T, fig=c(0.77, 0.85, 0.6, 0.9), mar=c(0.05,0.05,0.05,0.05)) #upper inset
 plot(coast.polys.sp, ylim=c(36.1,36.5), xlim=c(-122,-121.5))
 points(locs$Lon, locs$Lat, pch=19,
-       col=pal[class_eq_int_sym(coravg.diff.25km,nclasses)$class], cex=0.6)
+       col=pal[class_eq_int_sym(coravg.diff.25km,nclasses)$class], cex=0.5)
 rect(-122.005, 35.925, -121.485, 36.676, col=NA, border="grey")
+
+par(new=T, fig=c(0.7, 0.87, 0.065, 0.24), mar=c(0.05,0.05,0.05,0.05)) #lower inset
+plot(coast.polys.sp, ylim=c(34.3,34.6), xlim=c(-120.7,-119.7))
+points(locs$Lon, locs$Lat, pch=19,
+       col=pal[class_eq_int_sym(coravg.diff.25km,nclasses)$class], cex=0.5)
+rect(-120.7, 34.3, -119.663, 34.655, col=NA, border="grey")
 
 
 dev.off()

@@ -508,19 +508,62 @@ mod<-gls(kelp ~ no3 + waves + npgo, correlation = corExp(form = ~ lon + lat, nug
 summary(mod)
 
 
+## Test sensitivity to distance threshold
 
-# moddat2<-data.frame(kelp = coravg.diff.25km,
-#                    no3 = kelpXno3.diff, geog.dist,
-#                    waves = kelpXwaves.diff,
-#                    npgo = kelpXnpgo.diff,
-#                    lat = locs$Lat,
-#                    lon = locs$Lon)
-# 
-# moddat2<-moddat2[complete.cases(moddat2),]
-# 
-# mod2<-gls(kelp ~ no3 + waves + npgo, correlation = corExp(form = ~ lon + lat), data=moddat2)
-# summary(mod2)
 
+## distance =  10 km
+moddat3<-data.frame(kelp = avg_by_dist(cormat.diff, geog.dist, 10),
+                    no3 = avg_by_dist2(kelpXno3.diff, geog.dist, 10),
+                    waves = avg_by_dist2(kelpXwaves.diff, geog.dist, 10),
+                    npgo = avg_by_dist2(kelpXnpgo.diff, geog.dist, 10),
+                    lat = locs$Lat,
+                    lon = locs$Lon)
+
+moddat3<-moddat3[complete.cases(moddat3),]
+
+mod3<-gls(kelp ~ no3 + waves + npgo, correlation = corExp(form = ~ lon + lat, nugget=T), data=moddat3)
+summary(mod3)
+
+## distance = 50 km
+moddat4<-data.frame(kelp = avg_by_dist(cormat.diff, geog.dist, 50),
+                    no3 = avg_by_dist2(kelpXno3.diff, geog.dist, 50),
+                    waves = avg_by_dist2(kelpXwaves.diff, geog.dist, 50),
+                    npgo = avg_by_dist2(kelpXnpgo.diff, geog.dist, 50),
+                    lat = locs$Lat,
+                    lon = locs$Lon)
+
+moddat4<-moddat4[complete.cases(moddat4),]
+
+mod4<-gls(kelp ~ no3 + waves + npgo, correlation = corExp(form = ~ lon + lat, nugget=T), data=moddat4)
+summary(mod4)
+
+## distance = 100 km
+moddat5<-data.frame(kelp = avg_by_dist(cormat.diff, geog.dist, 100),
+                    no3 = avg_by_dist2(kelpXno3.diff, geog.dist, 100),
+                    waves = avg_by_dist2(kelpXwaves.diff, geog.dist, 100),
+                    npgo = avg_by_dist2(kelpXnpgo.diff, geog.dist, 100),
+                    lat = locs$Lat,
+                    lon = locs$Lon)
+
+moddat5<-moddat5[complete.cases(moddat5),]
+
+mod5<-gls(kelp ~ no3 + waves + npgo, correlation = corExp(form = ~ lon + lat, nugget=T), data=moddat5)
+summary(mod5)
+
+## distance = 200 km
+moddat6<-data.frame(kelp = avg_by_dist(cormat.diff, geog.dist, 200),
+                    no3 = avg_by_dist2(kelpXno3.diff, geog.dist, 200),
+                    waves = avg_by_dist2(kelpXwaves.diff, geog.dist, 200),
+                    npgo = avg_by_dist2(kelpXnpgo.diff, geog.dist, 200),
+                    lat = locs$Lat,
+                    lon = locs$Lon)
+
+moddat6<-moddat6[complete.cases(moddat6),]
+
+mod6<-gls(kelp ~ no3 + waves + npgo, correlation = corExp(form = ~ lon + lat, nugget=T), data=moddat6)
+summary(mod6)
+
+#
 # pdf("scatterplot_by_association.pdf")
 # par(xpd=T)
 # plot(NA, NA, xlim=range(-1*waves.raw), ylim=range(kelp.raw), xlab="calmness", ylab="kelp biomass")
@@ -598,8 +641,9 @@ sample_skewness<-function(x){
 kelp_skew<-apply(kelp.raw, 1, sample_skewness)
 hist(kelp_skew) #distributions are primarily right-skewed (high outliers)
 
-plot(coravg.diff.25km, kelp_skew)
-cor.test(coravg.diff.25km, kelp_skew)
+
+plot(coravg.diff.25km, kelp_skew) ## <-------------- this needs to be for an aggregate!
+cor.test(coravg.diff.25km, kelp_skew, method="spearman")
 
 
 moddat2<-data.frame(kelp_skew = kelp_skew,
@@ -640,6 +684,8 @@ mtext("lower tail association", at=-0.02)
 mtext("upper tail association", at=0.02)
 cor.test(coravg.diff.25km, kelp_spatavg_skew, method="spearman") 
 # positive correlation but funky dist'n so using Spearman; rho = 0.27, p << 0.0001
+
+cor.test(coravg.diff.25km, rowMeans(kelp_spatavg))
 
 
 moddat3<-data.frame(kelp = kelp_spatavg_skew,
@@ -717,12 +763,12 @@ image.plot(1:361,1:361,cormat.ub.filt, xaxt="n", yaxt="n", legend.width=0.75, le
            zlim=c(-0.6,0.6), col=pal(64))
 mtext("Upper tail synchrony matrix", cex=0.75)
 axis(side=1,at=axis.at, labels=axis.labels2)
-axis(side=2,at=axis.at, labels=axis.labels2)
+axis(side=2,at=axis.at, labels=axis.labels2, las=2)
 image.plot(1:361,1:361,cormat.lb.filt, xaxt="n", yaxt="n", legend.width=0.75, legend.mar=2.5, 
            zlim=c(-0.6,0.6), col=pal(64))
 mtext("Lower tail synchrony matrix", cex=0.75)
 axis(side=1,at=axis.at, labels=axis.labels2)
-axis(side=2,at=axis.at, labels=axis.labels2)
+axis(side=2,at=axis.at, labels=axis.labels2, las=2)
 image.plot(1:361,1:361,cormat.diff.nodiag, xaxt="n", yaxt="n", legend.width=0.75, legend.mar=2.5, 
            zlim=c(-0.6,0.6), col=pal(64))
 mtext("Tail association (uppper-lower)", cex=0.75)
@@ -770,6 +816,11 @@ polys <- fortify(coast.polys)
 
 thin <- seq(1, nrow(locs), by=5)
 
+places <- data.frame(x = c(-121.8, -121.7, -120.8, -120.4, -118.49, -117.15),
+                     y = c(36.6, 36.3, 35.37, 34.55, 34.02, 32.72),
+                     name = c("Monterey","Point Sur","Morro Bay", "Point Conception", "Santa Monica", "San Diego"))
+
+
 nclasses=8
 pal<-brewer.pal(nclasses,"RdYlBu")
 tpal<-c("#D7302780", "#F46D4380", "#FDAE6180", "#FEE09080", "#E0F3F880", "#ABD9E980", "#74ADD180", "#4575B480")
@@ -789,6 +840,8 @@ mtext("Upper tail synchrony", cex=0.75, line=0.5)
 legend("topright", pch=19, 
        legend=legtext(class_eq_int_sym(coravg.lb.25km,nclasses)$breaks, digits=3)[5:8]
        , col=pal[5:8], cex=0.8)
+points(places$x, places$y, pch=23, col="grey", bg="black", lwd=0.5, cex=0.8)
+text(places$x, places$y, places$name, pos=c(rep(4,5),2), cex=0.65)
 
 plot(coast.polys.sp, xlim=range(locs$Lon), ylim=range(locs$Lat))
 points(locs$Lon[thin], locs$Lat[thin], pch=19, 
@@ -798,6 +851,8 @@ mtext("Lower tail synchrony", cex=0.75, line=0.5)
 mtext("b)",at=par("usr")[1]+0.05*diff(par("usr")[1:2]), side=3, cex=0.75, line=0.5)
 legend("topright", pch=19, legend=legtext(class_eq_int_sym(coravg.ub.25km,nclasses)$breaks, digits=3)[5:8], 
        col=pal[5:8], cex=0.8)
+points(places$x, places$y, pch=23, col="grey", bg="black", lwd=0.5, cex=0.8)
+text(places$x, places$y, places$name, pos=c(rep(4,5),2), cex=0.65)
 
 plot(coast.polys.sp, xlim=range(locs$Lon), ylim=range(locs$Lat))
 points(locs$Lon[thin], locs$Lat[thin], pch=19, 
@@ -811,6 +866,8 @@ segments(-121.8, 36.7, -120.85, 37.735, col="grey") #upper inset
 segments(-121.45, 35.92, -120.85, 35.8, col="grey")
 segments(-120.649, 34.65, -121.995, 33.38, col="grey") #lower inset
 segments(-119.657, 34.355, -119.195, 33.38, col="grey")
+points(places$x, places$y, pch=23, col="grey", bg="black", lwd=0.5, cex=0.8)
+text(places$x, places$y, c("MO","PS",places$name[3:6]), pos=c(rep(4,5),2), cex=0.65)
 
 par(new=T, fig=c(0.77, 0.85, 0.6, 0.9), mar=c(0.05,0.05,0.05,0.05)) #upper inset
 plot(coast.polys.sp, ylim=c(36.1,36.5), xlim=c(-122,-121.5))
@@ -845,6 +902,10 @@ legend("topright", pch=19,
        , col=pal, cex=0.8)
 segments(-121.8, 36.7, -120.85, 37.735, col="grey")
 segments(-121.45, 35.92, -120.85, 35.8, col="grey")
+segments(-120.649, 34.65, -121.995, 33.38, col="grey") #lower inset
+segments(-119.657, 34.355, -119.195, 33.38, col="grey")
+points(places$x, places$y, pch=23, col="grey", bg="black", lwd=0.5, cex=0.8)
+text(places$x, places$y, c("MO","PS",places$name[3:6]), pos=c(rep(4,5),2), cex=0.65)
 
 plot(coast.polys.sp, xlim=range(locs$Lon), ylim=range(locs$Lat))
 points(locs$Lon[thin], locs$Lat[thin], pch=19, 
@@ -856,6 +917,10 @@ legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXno3.diff,nclasse
        col=pal, cex=0.8)
 segments(-121.8, 36.7, -120.85, 37.735, col="grey")
 segments(-121.45, 35.92, -120.85, 35.8, col="grey")
+segments(-120.649, 34.65, -121.995, 33.38, col="grey") #lower inset
+segments(-119.657, 34.355, -119.195, 33.38, col="grey")
+points(places$x, places$y, pch=23, col="grey", bg="black", lwd=0.5, cex=0.8)
+text(places$x, places$y, c("MO","PS",places$name[3:6]), pos=c(rep(4,5),2), cex=0.65)
 
 plot(coast.polys.sp, xlim=range(locs$Lon), ylim=range(locs$Lat))
 points(locs$Lon[thin], locs$Lat[thin], pch=19, 
@@ -867,26 +932,49 @@ legend("topright", pch=19, legend=legtext(class_eq_int_sym(kelpXnpgo.diff,nclass
        , col=pal, cex=0.8)
 segments(-121.8, 36.7, -120.85, 37.735, col="grey")
 segments(-121.45, 35.92, -120.85, 35.8, col="grey")
+segments(-120.649, 34.65, -121.995, 33.38, col="grey") #lower inset
+segments(-119.657, 34.355, -119.195, 33.38, col="grey")
+points(places$x, places$y, pch=23, col="grey", bg="black", lwd=0.5, cex=0.8)
+text(places$x, places$y, c("MO","PS",places$name[3:6]), pos=c(rep(4,5),2), cex=0.65)
 
 par(new=T, fig=c(0.104, 0.184, 0.6, 0.9), mar=c(0.05,0.05,0.05,0.05))
 plot(coast.polys.sp, ylim=c(36.1,36.5), xlim=c(-122,-121.5))
 points(locs$Lon, locs$Lat, pch=19,
-       col=pal[class_eq_int_sym(kelpXwaves.diff,nclasses)$class], cex=0.6)
+       col=pal[class_eq_int_sym(kelpXwaves.diff,nclasses)$class], cex=0.5)
 rect(-122.005, 35.925, -121.485, 36.676, col=NA, border="grey")
 
 par(new=T, fig=c(0.437, 0.517, 0.6, 0.9), mar=c(0.05,0.05,0.05,0.05))
 plot(coast.polys.sp, ylim=c(36.1,36.5), xlim=c(-122,-121.5))
 points(locs$Lon, locs$Lat, pch=19,
-       col=pal[class_eq_int_sym(kelpXno3.diff,nclasses)$class], cex=0.6)
+       col=pal[class_eq_int_sym(kelpXno3.diff,nclasses)$class], cex=0.5)
 rect(-122.005, 35.925, -121.485, 36.676, col=NA, border="grey")
 
 par(new=T, fig=c(0.77, 0.85, 0.6, 0.9), mar=c(0.05,0.05,0.05,0.05))
 plot(coast.polys.sp, ylim=c(36.1,36.5), xlim=c(-122,-121.5))
 points(locs$Lon, locs$Lat, pch=19,
-       col=pal[class_eq_int_sym(kelpXnpgo.diff,nclasses)$class], cex=0.6)
+       col=pal[class_eq_int_sym(kelpXnpgo.diff,nclasses)$class], cex=0.5)
 rect(-122.005, 35.925, -121.485, 36.676, col=NA, border="grey")
 
+par(new=T, fig=c(0.033, 0.203, 0.065, 0.24), mar=c(0.05,0.05,0.05,0.05)) #lower inset
+plot(coast.polys.sp, ylim=c(34.3,34.6), xlim=c(-120.7,-119.7))
+points(locs$Lon, locs$Lat, pch=19,
+       col=pal[class_eq_int_sym(kelpXwaves.diff,nclasses)$class], cex=0.5)
+rect(-120.7, 34.3, -119.663, 34.655, col=NA, border="grey")
+
+par(new=T, fig=c(0.366, 0.536, 0.065, 0.24), mar=c(0.05,0.05,0.05,0.05)) #lower inset
+plot(coast.polys.sp, ylim=c(34.3,34.6), xlim=c(-120.7,-119.7))
+points(locs$Lon, locs$Lat, pch=19,
+       col=pal[class_eq_int_sym(kelpXno3.diff,nclasses)$class], cex=0.5)
+rect(-120.7, 34.3, -119.663, 34.655, col=NA, border="grey")
+
+par(new=T, fig=c(0.7, 0.87, 0.065, 0.24), mar=c(0.05,0.05,0.05,0.05)) #lower inset
+plot(coast.polys.sp, ylim=c(34.3,34.6), xlim=c(-120.7,-119.7))
+points(locs$Lon, locs$Lat, pch=19,
+       col=pal[class_eq_int_sym(kelpXnpgo.diff,nclasses)$class], cex=0.5)
+rect(-120.7, 34.3, -119.663, 34.655, col=NA, border="grey")
+
 dev.off()
+
 
 
 ## Figure 5: Calmness versus tail association

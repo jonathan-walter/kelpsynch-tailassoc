@@ -610,6 +610,15 @@ cor.test(rowMeans(kelp.raw), kelpXwaves.diff, method="spearman")
 
 cor.test(-1*rowMeans(waves.raw), kelpXwaves.diff)
 
+moddf<-data.frame(tail = kelpXwaves.diff,
+                  calm = -1*rowMeans(waves.raw),
+                  lat = locs$Lat,
+                  lon = locs$Lon)
+moddf<-moddf[complete.cases(moddf),]
+
+mod_tail_v_calm <- gls(tail ~ calm, correlation = corExp(form = ~lat + lon), data=moddf)
+summary(mod_tail_v_calm)
+
 # pdf("calmness_vs_tail.pdf")
 # plot(-1*rowMeans(waves.raw), kelpXwaves.diff, ylab="kelpXwaves lower - upper", xlab="Mean wave calmness")
 # dev.off()
@@ -706,7 +715,7 @@ summary(mod3) #no significant effects; model does not fit without setting value 
 
 #Fig 1: distance decay
 
-png("./manuscript/fig1_distdecay.png", width=6.5, height=3, units="in", res=300)
+png("./manuscript/fig2_distdecay.png", width=6.5, height=3, units="in", res=300)
 
 par(mfrow=c(1,3), mgp=c(2.3,0.7,0), mar=c(2.1,2.1,1.6,1.1), cex.lab=1.3, oma=c(2,2,0,0))
 
@@ -755,7 +764,7 @@ axis.labels=c("Monterey","Point Sur","Morro Bay","Pt. Conception","Santa Monica"
 axis.labels2<-c("MO","PS","MB","PC","SM","SD")
 
 
-png("./manuscript/fig2_matrices.png", width=3.2, height=8.5, units="in", res=300)
+png("./manuscript/fig3_matrices.png", width=3.2, height=8.5, units="in", res=300)
 
 par(mfrow=c(3,1), mgp=c(2,0.5,0), mar=c(1.1,1.1,1.5,1.1), oma=c(6,1.5,0,0))
 
@@ -814,7 +823,7 @@ polys <- fortify(coast.polys)
 
 #plot(coast.border.sp)
 
-thin <- seq(1, nrow(locs), by=5)
+thin <- c(seq(1, 298, by=5),seq(299, nrow(locs), by=2))
 
 places <- data.frame(x = c(-121.8, -121.7, -120.8, -120.4, -118.49, -117.15),
                      y = c(36.6, 36.3, 35.37, 34.55, 34.02, 32.72),
@@ -826,7 +835,7 @@ pal<-brewer.pal(nclasses,"RdYlBu")
 tpal<-c("#D7302780", "#F46D4380", "#FDAE6180", "#FEE09080", "#E0F3F880", "#ABD9E980", "#74ADD180", "#4575B480")
 
 
-png("./manuscript/fig3_kelpsynch_maps.png", width=6.5, height=3, res=300, units="in")
+png("./manuscript/fig4_kelpsynch_maps.png", width=6.5, height=3, res=300, units="in")
 
 par(mfrow=c(1,3), mar=c(0.5,0.5,2,0.5))
 
@@ -886,7 +895,7 @@ dev.off()
 
 
 ## Figure 4: Driver tail association maps
-png("./manuscript/fig4_drivertail_maps.png", width=6.5, height=3, res=300, units="in")
+png("./manuscript/fig5_drivertail_maps.png", width=6.5, height=3, res=300, units="in")
 
 par(mfrow=c(1,3),mar=c(0.5,0.5,2,0.5))
 
@@ -979,9 +988,32 @@ dev.off()
 
 ## Figure 5: Calmness versus tail association
 
-png("./manuscript/fig5_calmnTailAssoc.png",units="in",res=300,height=3.5,width=6.5)
 
-layout(matrix(c(1,1,2,3), nrow=2, ncol=2), widths=c(0.4,0.6,0.6))
+#schematic 
+
+x <- seq(-6,6,by=0.1)
+S <- 1/(1 + exp(x))
+
+# source("./code/extremeTailDep.R")
+# np<-50
+# xtc_r<-retd(n=np,d=2,rl=1,mn=0,sdev=1) # copula with extreme right tail
+# 
+# 
+# # flip xtc_r to get xtc_l
+# #xtc_l<-1-xtc_r
+# # make marginals uniform 
+# xtc_r<-pnorm(xtc_r)
+# xtc_l<-1-xtc_r
+
+## find strongly tail dependent relationships
+
+find.strong <- cormat.diff.nodiag * ifelse(cormat.all > 0.5, 1, NA)
+
+
+
+png("./manuscript/fig6_calmnTailAssoc.png",units="in",res=300,height=6.5,width=6.5)
+
+layout(matrix(c(1,2,3,3,4,4), nrow=3, ncol=2, byrow=TRUE), heights = c(0.5,0.3,0.3))
 
 par(mar=c(3.1,3.1,1.25,1.1), mgp=c(2,0.8,0), cex.axis=0.9)
 
@@ -989,13 +1021,36 @@ plot(-1*rowMeans(waves.raw), kelpXwaves.diff, ylab="Tail association (upper - lo
      xlab="Mean wave calmness", pch=19)
 abline(h=0, col="grey", lty=2)
 abline(v=median(-1*rowMeans(waves.raw)), col="grey", lty=2)
+abline(mod_tail_v_calm, col="green")
+mtext(expression(paste(beta, "= -0.025, p = 0.001")), cex=0.75)
+text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.05*abs(diff(par("usr")[3:4])),"a)")
 
-mtext("Pearson corr. = -0.26, p < 0.0001", cex=0.75)
+plot(x, S, type="l", xaxt="n", yaxt="n", xlab="Wave calmness", ylab="Proportional kelp loss",
+     ylim=c(-0.2,1.2))
+axis(1, at=seq(min(x),max(x),length.out=5), labels=c("Low","","","","High"))
+axis(2, at=seq(0,1,length.out=5),labels=TRUE)
+arrows(x0=-5, y0=1.05, x1=-1, y1=1.05, col="blue", length=0.04, angle=90, code=3, lwd=1.3)
+text(-3,1.16,"Wave exposed site:\neffects in upper tail",col="blue")
+text(3,-.16,"Calm site:\neffects in lower tail",col="red")
+arrows(x0=1, y0=-0.05, x1=5, y1=-0.05, col="red", length=0.04, angle=90, code=3, lwd=1.3)
+text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.05*abs(diff(par("usr")[3:4])),"b)")
 
-plot(NA, NA, xlim=c(0,50), ylim=c(-1,1), xlab="Time", ylab="Kelp biomass")
-mtext("Upper tail association (0.5)", cex=0.75)
+plot(NA, NA, xlim=c(1987,2019), ylim=c(-2,3), xlab="Time", ylab="Standardized kelp biomass")
+#axis(2, at=seq(0,1,length.out=5), labels=c("Low","","","","High"))
+#abline(h=median(rowSums(xtc_r)), col="grey", lty=3)
+lines(years, scale(kelp[48,]))
+lines(years, scale(kelp[54,]), lty=2)
+#lines(rowSums(xtc_r), lwd=2)
+mtext("Upper tail association", cex=0.75)
+text(par("usr")[1]+0.025*abs(diff(par("usr")[1:2])), par("usr")[4]-0.1*abs(diff(par("usr")[3:4])),"c)")
 
-plot(NA, NA, xlim=c(0,50), ylim=c(-1,1), xlab="Time", ylab="Kelp biomass")
-mtext("Lower tail association (-0.5)", cex=0.75)
+plot(NA, NA, xlim=c(1987,2019), ylim=c(-2,3), xlab="Time", ylab="Standardized kelp biomass")
+#axis(2, at=seq(0,1,length.out=5), labels=c("Low","","","","High"))
+#abline(h=median(rowSums(xtc_l)), col="grey", lty=3)
+lines(years, scale(kelp[30,]))
+lines(years, scale(kelp[31,]), lty=2)
+#lines(rowSums(xtc_l), lwd=2)
+mtext("Lower tail association", cex=0.75)
+text(par("usr")[1]+0.025*abs(diff(par("usr")[1:2])), par("usr")[4]-0.1*abs(diff(par("usr")[3:4])),"d)")
 
 dev.off()

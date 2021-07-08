@@ -7,12 +7,11 @@ tmax = burn+50
 sd.reg = 1
 mu.reg1 = -2 # mean of regional driver for location 1
 mu.reg2 = 2 # mean of regional driver for location 2
-sd.loc = 0.1 # sd of local driver (mean = 0)
+sd.loc = 0.4 # sd of local driver (mean = 0)
 n.each = 2
-r = 0.9
-K = 100
+b = 0.5
 
-set.seed(19)
+set.seed(17)
 
 #sigmoid function acts as filter on environmental noises
 sigmoid <- function(x) {
@@ -43,14 +42,14 @@ Nt.2 <- Nt.1
 Et.1 <- rnorm(tmax, mean=mu.reg1, sd=sd.reg)
 Et.2 <- rnorm(tmax, mean=mu.reg2, sd=sd.reg)
 
-Nt.1[,1] <- rnorm(n.each, mean = K, sd = K/10)
-Nt.2[,1] <- rnorm(n.each, mean = K, sd = K/10)
+Nt.1[,1] <- rnorm(n.each, mean = 0, sd = 1)
+Nt.2[,1] <- rnorm(n.each, mean = 0, sd = 1)
 
 
 for(tt in 2:tmax){
   
-  Nt.1[,tt] <- ricker(Nt.1[,tt-1], r, K) + rescale(sigmoid(Et.1), K/10)[tt] + rnorm(n.each, sd=K/20)
-  Nt.2[,tt] <- ricker(Nt.2[,tt-1], r, K) + rescale(sigmoid(Et.2), K/10)[tt] + rnorm(n.each, sd=K/20)
+  Nt.1[,tt] <- Nt.1[,tt-1]*b + rescale(sigmoid(Et.1), 1)[tt] + rnorm(n.each, sd=sd.loc)
+  Nt.2[,tt] <- Nt.2[,tt-1]*b + rescale(sigmoid(Et.2), 1)[tt] + rnorm(n.each, sd=sd.loc)
   
 }
 
@@ -80,7 +79,7 @@ laymat[2,5:8] <- c(4,4,5,5)
 laymat[3,] <- rep(c(6,7),each=4)
 
 
-png("~/GitHub/kelpsynch-tailassoc/manuscript/fig1_theory.png", units="in", res=300, width=6.5, height=4.5)
+png("~/GitHub/kelpsynch-tailassoc/manuscript/fig1_theory_ar1.png", units="in", res=300, width=6.5, height=4.5)
 
 layout(laymat)
 par(mar=c(2.6,2.6,1.1,1.1), mgp=c(1,0.5,0))

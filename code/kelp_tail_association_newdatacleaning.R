@@ -229,9 +229,9 @@ diag(cormat.diff.nodiag)<-NA
 # surrDiff<-rep(NA, dim(ncsurr)[3])
 # surrCorr<-rep(NA, dim(ncsurr)[3])
 # for(rep in 1:dim(ncsurr)[3]){
-#   
+# 
 #   N<-dim(ncsurr)[2]
-#   
+# 
 #   tmpdat<-t(ncsurr[,,rep])
 #   tmpcormat<-cor(t(tmpdat), method="spearman")
 #   tmpfilt<-ifelse(tmpcormat>=0,1,NA)
@@ -243,10 +243,10 @@ diag(cormat.diff.nodiag)<-NA
 #       tmpcormat.ub[ii,jj]<-partialSpearman(tmpdat[ii,],tmpdat[jj,],ub)
 #     }
 #   }
-#   
+# 
 #   tmpcormat.lb<-tmpcormat.lb + t(tmpcormat.lb) * tmpfilt
 #   tmpcormat.ub<-tmpcormat.ub + t(tmpcormat.ub) * tmpfilt
-#   
+# 
 #   surrDiff[rep]<-sum(tmpcormat.ub-tmpcormat.lb, na.rm=T)
 #   surrCorr[rep]<-1-cor(tmpcormat.lb[lower.tri(tmpcormat.lb)]
 #                      ,tmpcormat.ub[lower.tri(tmpcormat.ub)]
@@ -507,6 +507,33 @@ moddat<-moddat[complete.cases(moddat),]
 mod<-gls(kelp ~ no3 + waves + npgo, correlation = corExp(form = ~ lon + lat, nugget=T), data=moddat)
 summary(mod)
 
+rescor.mod<-spline.correlog(x=moddat$lon, y=moddat$lat, z=resid(mod), latlon=TRUE)
+qq.mod<-qqnorm(mod)
+
+png("./manuscript/diag1.png", res=300, units="in", width=6.5, height=3)
+
+par(mar=c(3.1,3.1,1.1,1.1), mfrow=c(1,2), mgp=c(2,0.8,0))
+
+plot(qq.mod$panel.args[[1]]$x, qq.mod$panel.args[[1]]$y,
+     xlab="Standardized residuals",
+     ylab="Quantiles of standard normal", pch=16, cex=0.7)
+abline(a=0,b=1)
+text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.05*abs(diff(par("usr")[3:4])),"a)")
+plot(rescor.mod, xlab="Distance (km)")
+text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.05*abs(diff(par("usr")[3:4])),"b)")
+
+dev.off()
+
+
+#calculate spatial similarity following Bjornstad et al. 
+
+
+resdist <- dist(resid(mod))
+
+moddist <- gcdist(moddat$lon, moddat$lon)
+
+plot(moddist[lower.tri(moddist)], resdist, pch=16, cex=0.7)
+
 
 ## Test sensitivity to distance threshold
 
@@ -618,6 +645,24 @@ moddf<-moddf[complete.cases(moddf),]
 
 mod_tail_v_calm <- gls(tail ~ calm, correlation = corExp(form = ~lat + lon), data=moddf)
 summary(mod_tail_v_calm)
+qq.mod<-qqnorm(mod_tail_v_calm)
+
+rescor.mod<-spline.correlog(moddf$lon, moddf$lat, resid(mod_tail_v_calm), latlon=TRUE)
+
+png("./manuscript/diag2.png", res=300, units="in", width=6.5, height=3)
+
+par(mar=c(3.1,3.1,1.1,1.1), mfrow=c(1,2), mgp=c(2,0.8,0))
+
+plot(qq.mod$panel.args[[1]]$x, qq.mod$panel.args[[1]]$y,
+     xlab="Standardized residuals",
+     ylab="Quantiles of standard normal", pch=16, cex=0.7)
+abline(a=0,b=1)
+text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.05*abs(diff(par("usr")[3:4])),"a)")
+plot(rescor.mod, xlab="Distance (km)")
+text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.05*abs(diff(par("usr")[3:4])),"b)")
+
+dev.off()
+
 
 # pdf("calmness_vs_tail.pdf")
 # plot(-1*rowMeans(waves.raw), kelpXwaves.diff, ylab="kelpXwaves lower - upper", xlab="Mean wave calmness")
@@ -770,17 +815,20 @@ par(mfrow=c(3,1), mgp=c(2,0.5,0), mar=c(1.1,1.1,1.5,1.1), oma=c(6,1.5,0,0))
 
 image.plot(1:361,1:361,cormat.ub.filt, xaxt="n", yaxt="n", legend.width=0.75, legend.mar=2.5, 
            zlim=c(-0.6,0.6), col=pal(64))
-mtext("Upper tail synchrony matrix", cex=0.75)
+mtext("a)", cex=0.75, at=0, line=0.2)
+mtext("Upper tail synchrony matrix", cex=0.7)
 axis(side=1,at=axis.at, labels=axis.labels2)
 axis(side=2,at=axis.at, labels=axis.labels2, las=2)
 image.plot(1:361,1:361,cormat.lb.filt, xaxt="n", yaxt="n", legend.width=0.75, legend.mar=2.5, 
            zlim=c(-0.6,0.6), col=pal(64))
-mtext("Lower tail synchrony matrix", cex=0.75)
+mtext("b)", cex=0.75, at=0, line=0.2)
+mtext("Lower tail synchrony matrix", cex=0.7)
 axis(side=1,at=axis.at, labels=axis.labels2)
 axis(side=2,at=axis.at, labels=axis.labels2, las=2)
 image.plot(1:361,1:361,cormat.diff.nodiag, xaxt="n", yaxt="n", legend.width=0.75, legend.mar=2.5, 
            zlim=c(-0.6,0.6), col=pal(64))
-mtext("Tail association (uppper-lower)", cex=0.75)
+mtext("c)", cex=0.75, at=0, line=0.2)
+mtext("Tail dependence strength (upper-lower)", cex=0.7)
 axis(side=1,at=axis.at, labels=axis.labels, las=2)
 axis(side=2,at=axis.at, labels=axis.labels2, las=2)
 
@@ -823,7 +871,8 @@ polys <- fortify(coast.polys)
 
 #plot(coast.border.sp)
 
-thin <- c(seq(1, 298, by=5),seq(299, nrow(locs), by=2))
+# thin <- c(seq(1, 298, by=5),seq(299, nrow(locs), by=2))
+thin <- c(seq(1,211,by=5),seq(211,243,by=2),seq(243,299,by=5),seq(299,nrow(locs),by=2))
 
 places <- data.frame(x = c(-121.8, -121.7, -120.8, -120.4, -118.49, -117.15),
                      y = c(36.6, 36.3, 35.37, 34.55, 34.02, 32.72),
@@ -841,7 +890,7 @@ par(mfrow=c(1,3), mar=c(0.5,0.5,2,0.5))
 
 plot(coast.polys.sp, xlim=range(locs$Lon), ylim=range(locs$Lat))
 points(locs$Lon[thin], locs$Lat[thin], pch=19, 
-       col=pal[class_eq_int_sym(coravg.ub.25km[thin],nclasses)$class], cex=0.6)
+       col=pal[class_eq_int_sym(coravg.ub.25km,nclasses)$class][thin], cex=0.6)
      #xlab="Longitude", ylab="Latitude", main="lower tail")
 mtext("a)",at=par("usr")[1]+0.05*diff(par("usr")[1:2]), side=3, cex=0.75, line=0.5)
 mtext("Upper tail synchrony", cex=0.75, line=0.5)
@@ -854,7 +903,7 @@ text(places$x, places$y, places$name, pos=c(rep(4,5),2), cex=0.65)
 
 plot(coast.polys.sp, xlim=range(locs$Lon), ylim=range(locs$Lat))
 points(locs$Lon[thin], locs$Lat[thin], pch=19, 
-       col=pal[class_eq_int_sym(coravg.lb.25km[thin],nclasses)$class], cex=0.6,
+       col=pal[class_eq_int_sym(coravg.lb.25km,nclasses)$class][thin], cex=0.6,
      xlab="Longitude", ylab="Latitude", main="upper tail")
 mtext("Lower tail synchrony", cex=0.75, line=0.5)
 mtext("b)",at=par("usr")[1]+0.05*diff(par("usr")[1:2]), side=3, cex=0.75, line=0.5)
@@ -865,10 +914,10 @@ text(places$x, places$y, places$name, pos=c(rep(4,5),2), cex=0.65)
 
 plot(coast.polys.sp, xlim=range(locs$Lon), ylim=range(locs$Lat))
 points(locs$Lon[thin], locs$Lat[thin], pch=19, 
-       col=pal[class_eq_int_sym(coravg.diff.25km[thin],nclasses)$class], cex=0.6,
+       col=pal[class_eq_int_sym(coravg.diff.25km,nclasses)$class][thin], cex=0.6,
      xlab="Longitude", ylab="Latitude", main="lower tail - upper tail")
 mtext("c)",at=par("usr")[1]+0.05*diff(par("usr")[1:2]), side=3, cex=0.75, line=0.5)
-mtext("Tail association strength", cex=0.75, line=0.5)
+mtext("Tail dependence strength", cex=0.75, line=0.5)
 legend("topright", pch=19, legend=legtext(class_eq_int_sym(coravg.diff.25km,nclasses)$breaks, digits=3)
        , col=pal, cex=0.8)
 segments(-121.8, 36.7, -120.85, 37.735, col="grey") #upper inset
@@ -901,7 +950,7 @@ par(mfrow=c(1,3),mar=c(0.5,0.5,2,0.5))
 
 plot(coast.polys.sp, xlim=range(locs$Lon), ylim=range(locs$Lat))
 points(locs$Lon[thin], locs$Lat[thin], pch=19, 
-       col=pal[class_eq_int_sym(kelpXwaves.diff[thin],nclasses)$class], cex=0.6,
+       col=pal[class_eq_int_sym(kelpXwaves.diff,nclasses)$class][thin], cex=0.6,
        xlab="Longitude", ylab="Latitude", main="lower tail")
 mtext("a)",at=par("usr")[1]+0.05*diff(par("usr")[1:2]), side=3, cex=0.75, line=0.5)
 mtext("Wave calmness", cex=0.75, line=0.5)
@@ -918,7 +967,7 @@ text(places$x, places$y, c("MO","PS",places$name[3:6]), pos=c(rep(4,5),2), cex=0
 
 plot(coast.polys.sp, xlim=range(locs$Lon), ylim=range(locs$Lat))
 points(locs$Lon[thin], locs$Lat[thin], pch=19, 
-       col=pal[class_eq_int_sym(kelpXno3.diff[thin],nclasses)$class], cex=0.6,
+       col=pal[class_eq_int_sym(kelpXno3.diff,nclasses)$class][thin], cex=0.6,
        xlab="Longitude", ylab="Latitude", main="upper tail")
 mtext("b)",at=par("usr")[1]+0.05*diff(par("usr")[1:2]), side=3, cex=0.75, line=0.5)
 mtext("Nitrate concentration", cex=0.75, line=0.5)
@@ -933,7 +982,7 @@ text(places$x, places$y, c("MO","PS",places$name[3:6]), pos=c(rep(4,5),2), cex=0
 
 plot(coast.polys.sp, xlim=range(locs$Lon), ylim=range(locs$Lat))
 points(locs$Lon[thin], locs$Lat[thin], pch=19, 
-       col=pal[class_eq_int_sym(kelpXnpgo.diff[thin],nclasses)$class], cex=0.6,
+       col=pal[class_eq_int_sym(kelpXnpgo.diff,nclasses)$class][thin], cex=0.6,
        xlab="Longitude", ylab="Latitude", main="lower tail - upper tail")
 mtext("c)",at=par("usr")[1]+0.05*diff(par("usr")[1:2]), side=3, cex=0.75, line=0.5)
 mtext("NPGO", cex=0.75, line=0.5)
@@ -1015,42 +1064,54 @@ png("./manuscript/fig6_calmnTailAssoc.png",units="in",res=300,height=6.5,width=6
 
 layout(matrix(c(1,2,3,3,4,4), nrow=3, ncol=2, byrow=TRUE), heights = c(0.5,0.3,0.3))
 
-par(mar=c(3.1,3.1,1.25,1.1), mgp=c(2,0.8,0), cex.axis=0.9)
+par(mar=c(3.1,3.1,3.1,1.1), mgp=c(2,0.8,0), cex.axis=0.9)
 
-plot(-1*rowMeans(waves.raw), kelpXwaves.diff, ylab="Tail association (upper - lower)", 
+plot(-1*rowMeans(waves.raw), kelpXwaves.diff, ylab="Tail dependence (upper - lower)", 
      xlab="Mean wave calmness", pch=19)
 abline(h=0, col="grey", lty=2)
 abline(v=median(-1*rowMeans(waves.raw)), col="grey", lty=2)
 abline(mod_tail_v_calm, col="green")
-mtext(expression(paste(beta, "= -0.025, p = 0.001")), cex=0.75)
+axis(3,at=seq(-6,-1,1),labels=rev(1:6))
+mtext("Mean wave height", line=2, cex=0.65)
+text(-4.5,-0.25,expression(paste(beta, "= -0.025, p = 0.001")), cex=1)
 text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.05*abs(diff(par("usr")[3:4])),"a)")
 
 plot(x, S, type="l", xaxt="n", yaxt="n", xlab="Wave calmness", ylab="Proportional kelp loss",
      ylim=c(-0.2,1.2))
 axis(1, at=seq(min(x),max(x),length.out=5), labels=c("Low","","","","High"))
 axis(2, at=seq(0,1,length.out=5),labels=TRUE)
-arrows(x0=-5, y0=1.05, x1=-1, y1=1.05, col="blue", length=0.04, angle=90, code=3, lwd=1.3)
+axis(3, at=seq(min(x),max(x),length.out=5), labels=rev(c("Low","","","","High")))
+arrows(x0=-5, y0=1.05, x1=-1, y1=1.05, col="blue", length=0.03, angle=90, code=3, lwd=1.3)
 text(-3,1.16,"Wave exposed site:\neffects in upper tail",col="blue")
 text(3,-.16,"Calm site:\neffects in lower tail",col="red")
-arrows(x0=1, y0=-0.05, x1=5, y1=-0.05, col="red", length=0.04, angle=90, code=3, lwd=1.3)
+mtext("Wave height", line=2, cex=0.65)
+arrows(x0=1, y0=-0.05, x1=5, y1=-0.05, col="red", length=0.03, angle=90, code=3, lwd=1.3)
 text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.05*abs(diff(par("usr")[3:4])),"b)")
 
-plot(NA, NA, xlim=c(1987,2019), ylim=c(-2,3), xlab="Time", ylab="Standardized kelp biomass")
-#axis(2, at=seq(0,1,length.out=5), labels=c("Low","","","","High"))
-#abline(h=median(rowSums(xtc_r)), col="grey", lty=3)
-lines(years, scale(kelp[48,]))
-lines(years, scale(kelp[54,]), lty=2)
-#lines(rowSums(xtc_r), lwd=2)
-mtext("Upper tail association", cex=0.75)
-text(par("usr")[1]+0.025*abs(diff(par("usr")[1:2])), par("usr")[4]-0.1*abs(diff(par("usr")[3:4])),"c)")
+par(mar=c(3.1,3.1,1.25,1.1), mgp=c(2,0.8,0), cex.axis=0.9)
 
 plot(NA, NA, xlim=c(1987,2019), ylim=c(-2,3), xlab="Time", ylab="Standardized kelp biomass")
-#axis(2, at=seq(0,1,length.out=5), labels=c("Low","","","","High"))
-#abline(h=median(rowSums(xtc_l)), col="grey", lty=3)
-lines(years, scale(kelp[30,]))
-lines(years, scale(kelp[31,]), lty=2)
-#lines(rowSums(xtc_l), lwd=2)
-mtext("Lower tail association", cex=0.75)
+lines(years, scale(kelp[48,]), col="blue")
+lines(years, scale(kelp[54,]), lty=2, col="blue")
+mtext("Upper tail association", cex=0.75, line=0.1)
+text(par("usr")[1]+0.025*abs(diff(par("usr")[1:2])), par("usr")[4]-0.1*abs(diff(par("usr")[3:4])),"c)")
+segments(x0=2005, x1=2009, y0=1.75, y1=2.3, col="darkgrey")
+segments(x0=2013, x1=2009, y0=2.2, y1=2.3, col="darkgrey")
+text(x=2009, y=2.3, "Synchronous booms", col="darkgrey", pos=3)
+segments(x0=1998, x1=2002, y0=-1.9, y1=-1.6, col="darkgrey")
+text(x=2002, y=-1.6, "Asynchronous crash", pos=4, col="darkgrey")
+
+
+plot(NA, NA, xlim=c(1987,2019), ylim=c(-2,3), xlab="Time", ylab="Standardized kelp biomass")
+lines(years, scale(kelp[30,]), col="red")
+lines(years, scale(kelp[31,]), lty=2, col="red")
+mtext("Lower tail association", cex=0.75, line=0.1)
 text(par("usr")[1]+0.025*abs(diff(par("usr")[1:2])), par("usr")[4]-0.1*abs(diff(par("usr")[3:4])),"d)")
+segments(x0=2000, x1=2005.5, y0=1.9, y1=2.3, col="darkgrey")
+segments(x0=2018, x1=2012.5, y0=3, y1=2.6, col="darkgrey")
+text(x=2009, y=2.45, "Asynchronous booms", col="darkgrey")
+segments(x0=1992, x1=2002, y0=-1.3, y1=-1.6, col="darkgrey")
+segments(x0=1995, x1=2002, y0=-1.6, y1=-1.6, col="darkgrey")
+text(x=2002, y=-1.6, "Synchronous crashes", pos=4, col="darkgrey")
 
 dev.off()

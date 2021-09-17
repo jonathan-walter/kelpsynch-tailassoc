@@ -2,20 +2,21 @@
 
 rm(list=ls())
 
-burn = 100
-tmax = burn+50
-sd.reg = 1
+burn = 50
+tmax = burn+100
+sd.reg = 1.5
 mu.reg1 = -2 # mean of regional driver for location 1
 mu.reg2 = 2 # mean of regional driver for location 2
-sd.loc = 0.4 # sd of local driver (mean = 0)
+sd.loc = 0.15 # sd of local driver (mean = 0)
 n.each = 2
 b = 0.5
+c=1.5
 
 set.seed(17)
 
 #sigmoid function acts as filter on environmental noises
-sigmoid <- function(x) {
-  return(1/(1+exp(-x)))
+sigmoid <- function(x,c=1) {
+  return(1/(1+exp(-c*x)))
 }
 
 x = seq(-6,6,0.2)
@@ -48,8 +49,8 @@ Nt.2[,1] <- rnorm(n.each, mean = 0, sd = 1)
 
 for(tt in 2:tmax){
   
-  Nt.1[,tt] <- Nt.1[,tt-1]*b + rescale(sigmoid(Et.1), 1)[tt] + rnorm(n.each, sd=sd.loc)
-  Nt.2[,tt] <- Nt.2[,tt-1]*b + rescale(sigmoid(Et.2), 1)[tt] + rnorm(n.each, sd=sd.loc)
+  Nt.1[,tt] <- Nt.1[,tt-1]*b + (sigmoid(Et.1, c)[tt] - sigmoid(mu.reg1, c)) + rnorm(n.each, sd=sd.loc)
+  Nt.2[,tt] <- Nt.2[,tt-1]*b + (sigmoid(Et.2, c)[tt] - sigmoid(mu.reg2, c)) + rnorm(n.each, sd=sd.loc)
   
 }
 
@@ -85,14 +86,14 @@ layout(laymat)
 par(mar=c(2.6,2.6,1.1,1.1), mgp=c(1,0.5,0))
 
 #first panel
-plot(x, sigmoid(x), type="l", lwd=2, xlab = "Environmental driver", ylab="Population", ylim=c(-0.1,1.1),
+plot(x, sigmoid(x,c), type="l", lwd=2, xlab = "Environmental driver", ylab="Population", ylim=c(-0.1,1.1),
      xaxt="n", yaxt="n")
 axis(1, at=seq(min(x),max(x),length.out=5), labels=FALSE)
 axis(2, at=seq(0,1,length.out=5),labels=FALSE)
-arrows(x0=mu.reg1-1.96, y0=-0.05, x1=mu.reg1+1.96, y1=-0.05, col="blue", length=0.04, angle=90, code=3, lwd=1.3)
-text(mu.reg1,-0.1,"Effects stronger in upper tail",col="blue")
+arrows(x0=mu.reg1-1.96*sd.reg, y0=-0.05, x1=mu.reg1+1.96*sd.reg, y1=-0.05, col="blue", length=0.04, angle=90, code=3, lwd=1.3)
+text(mu.reg1,-0.11,"Effects stronger in upper tail",col="blue")
 text(mu.reg2,1.1,"Effects stronger in lower tail",col="red")
-arrows(x0=mu.reg2-1.96, y0=1.05, x1=mu.reg2+1.96, y1=1.05, col="red", length=0.04, angle=90, code=3, lwd=1.3)
+arrows(x0=mu.reg2-1.96*sd.reg, y0=1.05, x1=mu.reg2+1.96*sd.reg, y1=1.05, col="red", length=0.04, angle=90, code=3, lwd=1.3)
 text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.05*abs(diff(par("usr")[3:4])),"a)")
 
 #second panel
@@ -101,6 +102,7 @@ plot(rep(Et.1[(burn+1):tmax], each=2), Nt.1[,(burn+1):tmax], pch=16, col="blue",
 axis(1, labels=FALSE)
 axis(2, labels=FALSE)
 text(par("usr")[1]+0.1*abs(diff(par("usr")[1:2])), par("usr")[4]-0.1*abs(diff(par("usr")[3:4])),"b)")
+mtext("Upper tail dependence", cex=0.6, line=0.1)
 
 #third panel
 plot(rep(Et.2[(burn+1):tmax], each=2), Nt.2[,(burn+1):tmax], pch=16, col="red", xlab="Environmental driver",
@@ -108,6 +110,7 @@ plot(rep(Et.2[(burn+1):tmax], each=2), Nt.2[,(burn+1):tmax], pch=16, col="red", 
 axis(1, labels=FALSE)
 axis(2, labels=FALSE)
 text(par("usr")[1]+0.1*abs(diff(par("usr")[1:2])), par("usr")[4]-0.1*abs(diff(par("usr")[3:4])),"c)")
+mtext("Lower tail dependence", cex=0.6, line=0.1)
 
 #fourth panel
 plot(Nt.1[1,(burn+1):tmax], Nt.1[2,(burn+1):tmax], pch=16, col="blue", xlab="Population 1",
@@ -124,17 +127,32 @@ axis(2, labels=FALSE)
 text(par("usr")[1]+0.1*abs(diff(par("usr")[1:2])), par("usr")[4]-0.1*abs(diff(par("usr")[3:4])),"e)")
 
 #sixth panel
-plot(Nt.1[1, (burn+1):tmax], type="l", col="blue", xlab="Time", ylab="Population", xaxt="n", yaxt="n")
+plot(Nt.1[1, (burn+1):tmax], type="l", col="blue", xlab="Time", ylab="Population", xaxt="n", yaxt="n",
+     #ylim=c(min(Nt.1[,(burn+1):tmax]), max(Nt.1[,(burn+1):tmax])))
+     ylim=c(-0.7,1.5))
 axis(1, labels=FALSE)
 axis(2, labels=FALSE)
 lines(Nt.1[2,(burn+1):tmax], lty=2, col="blue")
+segments(x0=37.5, y0=1.35, x1=c(3,11), y1=c(1.22, 1.33), col="darkgrey")
+segments(x0=37.5, y0=-0.5, x1=25, y1=-0.46, col="darkgrey")
+segments(x0=76, y0=-0.5, x1=88, y1=-0.37, col="darkgrey")
+text(37.5, 1.35, "Synchronous booms", pos=4, col="darkgrey", cex=0.8)
+text(37.5, -0.5, "Asynchronous crashes", pos=4, col="darkgrey", cex=0.8)
 text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.1*abs(diff(par("usr")[3:4])),"f)")
 
 #seventh
-plot(Nt.2[1, (burn+1):tmax], type="l", col="red", xlab="Time", ylab="Population", xaxt="n", yaxt="n")
+plot(Nt.2[1, (burn+1):tmax], type="l", col="red", xlab="Time", ylab="Population", xaxt="n", yaxt="n",
+     #ylim=c(min(Nt.2[,(burn+1):tmax]), max(Nt.2[,(burn+1):tmax])))
+     ylim=c(-1.2,0.7))
 axis(1, labels=FALSE)
 axis(2, labels=FALSE)
 lines(Nt.2[2,(burn+1):tmax], lty=2, col="red")
+segments(x0=16, y0=0.65, x1=6, y1=0.59, col="darkgrey")
+segments(x0=54, y0=0.65, x1=65, y1=0.48, col="darkgrey")
+segments(x0=50, y0=-1.1, x1=36, y1=-1.05, col="darkgrey")
+segments(x0=63, y0=-0.95, x1=73, y1=-0.8, col="darkgrey")
+text(16,0.65, "Asynchronous booms", pos=4, col="darkgrey", cex=0.8)
+text(50,-1.1, "Synchronous crashes", pos=4, col="darkgrey", cex=0.8)
 text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.1*abs(diff(par("usr")[3:4])),"g)")
 
 

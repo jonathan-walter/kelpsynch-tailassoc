@@ -80,7 +80,7 @@ laymat[2,5:8] <- c(4,4,5,5)
 laymat[3,] <- rep(c(6,7),each=4)
 
 
-png("~/GitHub/kelpsynch-tailassoc/manuscript/fig1_theory_ar1.png", units="in", res=300, width=6.5, height=4.5)
+png("~/GitHub/kelpsynch-tailassoc/manuscript/fig2_theory_ar1.png", units="in", res=300, width=6.5, height=4.5)
 
 layout(laymat)
 par(mar=c(2.6,2.6,1.1,1.1), mgp=c(1,0.5,0))

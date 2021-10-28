@@ -760,44 +760,44 @@ summary(mod3) #no significant effects; model does not fit without setting value 
 
 #Fig 1: distance decay
 
-png("./manuscript/fig2_distdecay.png", width=6.5, height=3, units="in", res=300)
-
-par(mfrow=c(1,3), mgp=c(2.3,0.7,0), mar=c(2.1,2.1,1.6,1.1), cex.lab=1.3, oma=c(2,2,0,0))
-
-plot(sncf.lb$emp.spline$x, sncf.lb$emp.spline$y, col="red", type="l", ylim=c(0,0.4), lwd=2,
-     xlab="", ylab="", main="All coastline segments")
-lines(sncf.lb$emp.spline$x, sncf.lb$spline.quantiles[1,], col="red", lty=1)
-lines(sncf.lb$emp.spline$x, sncf.lb$spline.quantiles[3,], col="red", lty=1)
-lines(sncf.ub$emp.spline$x, sncf.ub$emp.spline$y, col="blue", lwd=2)
-lines(sncf.ub$emp.spline$x, sncf.ub$spline.quantiles[1,], col="blue", lty=1)
-lines(sncf.ub$emp.spline$x, sncf.ub$spline.quantiles[3,], col="blue", lty=1)
-text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.05*abs(diff(par("usr")[3:4])),"a)")
-legend("topright",lty=1,col=c("red","blue"),legend=c("lower tail","upper tail"),bty="n")
-
-plot(sncf.lb.c1$emp.spline$x, sncf.lb.c1$emp.spline$y, col="red", type="l", ylim=c(0,0.4), lwd=2,
-     xlab="", ylab="", main="Central California")
-lines(sncf.lb.c1$emp.spline$x, sncf.lb.c1$spline.quantiles[1,], col="red", lty=1)
-lines(sncf.lb.c1$emp.spline$x, sncf.lb.c1$spline.quantiles[3,], col="red", lty=1)
-lines(sncf.ub.c1$emp.spline$x, sncf.ub.c1$emp.spline$y, col="blue", lwd=2)
-lines(sncf.ub.c1$emp.spline$x, sncf.ub.c1$spline.quantiles[1,], col="blue", lty=1)
-lines(sncf.ub.c1$emp.spline$x, sncf.ub.c1$spline.quantiles[3,], col="blue", lty=1)
-text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.05*abs(diff(par("usr")[3:4])),"b)")
-#legend("topright",lty=1,col=c("red","blue"),legend=c("lower","upper"))
-
-plot(sncf.lb.c2$emp.spline$x, sncf.lb.c2$emp.spline$y, col="red", type="l", ylim=c(0,0.4), lwd=2,
-     xlab="", ylab="", main="Southern California")
-lines(sncf.lb.c2$emp.spline$x, sncf.lb.c2$spline.quantiles[1,], col="red", lty=1)
-lines(sncf.lb.c2$emp.spline$x, sncf.lb.c2$spline.quantiles[3,], col="red", lty=1)
-lines(sncf.ub.c2$emp.spline$x, sncf.ub.c2$emp.spline$y, col="blue", lwd=2)
-lines(sncf.ub.c2$emp.spline$x, sncf.ub.c2$spline.quantiles[1,], col="blue", lty=1)
-lines(sncf.ub.c2$emp.spline$x, sncf.ub.c2$spline.quantiles[3,], col="blue", lty=1)
-text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.05*abs(diff(par("usr")[3:4])),"c)")
-#legend("topright",lty=1,col=c("red","blue"),legend=c("lower","upper"))
-
-mtext("Distance (km)", side=1, outer=T, line=0.3)
-mtext("Partial Spearman correlation", side=2, outer=T, line=0.2)
-
-dev.off()
+# png("./manuscript/fig2_distdecay.png", width=6.5, height=3, units="in", res=300)
+# 
+# par(mfrow=c(1,3), mgp=c(2.3,0.7,0), mar=c(2.1,2.1,1.6,1.1), cex.lab=1.3, oma=c(2,2,0,0))
+# 
+# plot(sncf.lb$emp.spline$x, sncf.lb$emp.spline$y, col="red", type="l", ylim=c(0,0.4), lwd=2,
+#      xlab="", ylab="", main="All coastline segments")
+# lines(sncf.lb$emp.spline$x, sncf.lb$spline.quantiles[1,], col="red", lty=1)
+# lines(sncf.lb$emp.spline$x, sncf.lb$spline.quantiles[3,], col="red", lty=1)
+# lines(sncf.ub$emp.spline$x, sncf.ub$emp.spline$y, col="blue", lwd=2)
+# lines(sncf.ub$emp.spline$x, sncf.ub$spline.quantiles[1,], col="blue", lty=1)
+# lines(sncf.ub$emp.spline$x, sncf.ub$spline.quantiles[3,], col="blue", lty=1)
+# text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.05*abs(diff(par("usr")[3:4])),"a)")
+# legend("topright",lty=1,col=c("red","blue"),legend=c("lower tail","upper tail"),bty="n")
+# 
+# plot(sncf.lb.c1$emp.spline$x, sncf.lb.c1$emp.spline$y, col="red", type="l", ylim=c(0,0.4), lwd=2,
+#      xlab="", ylab="", main="Central California")
+# lines(sncf.lb.c1$emp.spline$x, sncf.lb.c1$spline.quantiles[1,], col="red", lty=1)
+# lines(sncf.lb.c1$emp.spline$x, sncf.lb.c1$spline.quantiles[3,], col="red", lty=1)
+# lines(sncf.ub.c1$emp.spline$x, sncf.ub.c1$emp.spline$y, col="blue", lwd=2)
+# lines(sncf.ub.c1$emp.spline$x, sncf.ub.c1$spline.quantiles[1,], col="blue", lty=1)
+# lines(sncf.ub.c1$emp.spline$x, sncf.ub.c1$spline.quantiles[3,], col="blue", lty=1)
+# text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.05*abs(diff(par("usr")[3:4])),"b)")
+# #legend("topright",lty=1,col=c("red","blue"),legend=c("lower","upper"))
+# 
+# plot(sncf.lb.c2$emp.spline$x, sncf.lb.c2$emp.spline$y, col="red", type="l", ylim=c(0,0.4), lwd=2,
+#      xlab="", ylab="", main="Southern California")
+# lines(sncf.lb.c2$emp.spline$x, sncf.lb.c2$spline.quantiles[1,], col="red", lty=1)
+# lines(sncf.lb.c2$emp.spline$x, sncf.lb.c2$spline.quantiles[3,], col="red", lty=1)
+# lines(sncf.ub.c2$emp.spline$x, sncf.ub.c2$emp.spline$y, col="blue", lwd=2)
+# lines(sncf.ub.c2$emp.spline$x, sncf.ub.c2$spline.quantiles[1,], col="blue", lty=1)
+# lines(sncf.ub.c2$emp.spline$x, sncf.ub.c2$spline.quantiles[3,], col="blue", lty=1)
+# text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.05*abs(diff(par("usr")[3:4])),"c)")
+# #legend("topright",lty=1,col=c("red","blue"),legend=c("lower","upper"))
+# 
+# mtext("Distance (km)", side=1, outer=T, line=0.3)
+# mtext("Partial Spearman correlation", side=2, outer=T, line=0.2)
+# 
+# dev.off()
 
 
 ## Fig 2: Matrices
@@ -809,33 +809,122 @@ axis.labels=c("Monterey","Point Sur","Morro Bay","Pt. Conception","Santa Monica"
 axis.labels2<-c("MO","PS","MB","PC","SM","SD")
 
 
-png("./manuscript/fig3_matrices.png", width=3.2, height=8.5, units="in", res=300)
+## NEW FIGURE 3 COMBINES DISTANCE DECAY AND MATRICES
 
-par(mfrow=c(3,1), mgp=c(2,0.5,0), mar=c(1.1,1.1,1.5,1.1), oma=c(6,1.5,0,0))
+laymat <- matrix(1:9, nrow=3, ncol=3)
+wr <- 0.07
 
-image.plot(1:361,1:361,cormat.ub.filt, xaxt="n", yaxt="n", legend.width=0.75, legend.mar=2.5, 
+png("./manuscript/fig3_combSynchrony.png", width=6.25, height=8.5, units="in", res=300)
+
+layout(laymat, widths=c((1-wr)/2, (1-wr)/2, wr))
+
+par(mgp=c(2.3,0.7,0), mar=c(4.1,4.1,1.6,1.1), cex.lab=1.2, oma=c(6,0,0,0))
+
+plot(sncf.lb$emp.spline$x, sncf.lb$emp.spline$y, col="red", type="l", ylim=c(0,0.4), lwd=2,
+     xlab="Distance", ylab="Partial Spearman correlation", main="")
+lines(sncf.lb$emp.spline$x, sncf.lb$spline.quantiles[1,], col="red", lty=1)
+lines(sncf.lb$emp.spline$x, sncf.lb$spline.quantiles[3,], col="red", lty=1)
+lines(sncf.ub$emp.spline$x, sncf.ub$emp.spline$y, col="blue", lwd=2)
+lines(sncf.ub$emp.spline$x, sncf.ub$spline.quantiles[1,], col="blue", lty=1)
+lines(sncf.ub$emp.spline$x, sncf.ub$spline.quantiles[3,], col="blue", lty=1)
+mtext("a)", cex=0.75, at=par("usr")[1], line=0.2)
+mtext("All coastline segments", cex=0.7, line=0.2)
+#text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.05*abs(diff(par("usr")[3:4])),"a)")
+legend("topright",lty=1,col=c("red","blue"),legend=c("lower tail","upper tail"),bty="n")
+
+plot(sncf.lb.c1$emp.spline$x, sncf.lb.c1$emp.spline$y, col="red", type="l", ylim=c(0,0.4), lwd=2,
+     xlab="Distance", ylab="Partial Spearman correlation", main="")
+lines(sncf.lb.c1$emp.spline$x, sncf.lb.c1$spline.quantiles[1,], col="red", lty=1)
+lines(sncf.lb.c1$emp.spline$x, sncf.lb.c1$spline.quantiles[3,], col="red", lty=1)
+lines(sncf.ub.c1$emp.spline$x, sncf.ub.c1$emp.spline$y, col="blue", lwd=2)
+lines(sncf.ub.c1$emp.spline$x, sncf.ub.c1$spline.quantiles[1,], col="blue", lty=1)
+lines(sncf.ub.c1$emp.spline$x, sncf.ub.c1$spline.quantiles[3,], col="blue", lty=1)
+#text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.05*abs(diff(par("usr")[3:4])),"b)")
+mtext("b)", cex=0.75, at=par("usr")[1], line=0.2)
+mtext("Central California", cex=0.7, line=0.2)
+#legend("topright",lty=1,col=c("red","blue"),legend=c("lower","upper"))
+
+plot(sncf.lb.c2$emp.spline$x, sncf.lb.c2$emp.spline$y, col="red", type="l", ylim=c(0,0.4), lwd=2,
+     xlab="Distance", ylab="Partial Spearman correlation", main="")
+lines(sncf.lb.c2$emp.spline$x, sncf.lb.c2$spline.quantiles[1,], col="red", lty=1)
+lines(sncf.lb.c2$emp.spline$x, sncf.lb.c2$spline.quantiles[3,], col="red", lty=1)
+lines(sncf.ub.c2$emp.spline$x, sncf.ub.c2$emp.spline$y, col="blue", lwd=2)
+lines(sncf.ub.c2$emp.spline$x, sncf.ub.c2$spline.quantiles[1,], col="blue", lty=1)
+lines(sncf.ub.c2$emp.spline$x, sncf.ub.c2$spline.quantiles[3,], col="blue", lty=1)
+#text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.05*abs(diff(par("usr")[3:4])),"c)")
+mtext("c)", cex=0.75, at=par("usr")[1], line=0.2)
+mtext("Southern California", cex=0.7, line=0.2)
+#legend("topright",lty=1,col=c("red","blue"),legend=c("lower","upper"))
+
+
+par(mgp=c(2,0.7,0), mar=c(1.5,2.1,1.6,1.1))
+
+#image.plot(1:361,1:361,cormat.ub.filt, xaxt="n", yaxt="n", legend.width=0.75, legend.mar=2.5,
+#           zlim=c(-0.6,0.6), col=pal(64))
+image(1:361,1:361,cormat.ub.filt, xaxt="n", yaxt="n",
            zlim=c(-0.6,0.6), col=pal(64))
-mtext("a)", cex=0.75, at=0, line=0.2)
-mtext("Upper tail synchrony matrix", cex=0.7)
+mtext("d)", cex=0.75, at=0, line=0.2)
+mtext("Upper tail synchrony matrix", cex=0.7, line=0.2)
 axis(side=1,at=axis.at, labels=axis.labels2)
 axis(side=2,at=axis.at, labels=axis.labels2, las=2)
-image.plot(1:361,1:361,cormat.lb.filt, xaxt="n", yaxt="n", legend.width=0.75, legend.mar=2.5, 
+# image.plot(1:361,1:361,cormat.lb.filt, xaxt="n", yaxt="n", legend.width=0.75, legend.mar=2.5,
+#            zlim=c(-0.6,0.6), col=pal(64))
+image(1:361,1:361,cormat.lb.filt, xaxt="n", yaxt="n",
            zlim=c(-0.6,0.6), col=pal(64))
-mtext("b)", cex=0.75, at=0, line=0.2)
-mtext("Lower tail synchrony matrix", cex=0.7)
+mtext("e)", cex=0.75, at=0, line=0.2)
+mtext("Lower tail synchrony matrix", cex=0.7, line=0.2)
 axis(side=1,at=axis.at, labels=axis.labels2)
 axis(side=2,at=axis.at, labels=axis.labels2, las=2)
-image.plot(1:361,1:361,cormat.diff.nodiag, xaxt="n", yaxt="n", legend.width=0.75, legend.mar=2.5, 
+# image.plot(1:361,1:361,cormat.diff.nodiag, xaxt="n", yaxt="n", legend.width=0.75, legend.mar=2.5,
+#            zlim=c(-0.6,0.6), col=pal(64))
+image(1:361,1:361,cormat.diff.nodiag, xaxt="n", yaxt="n",
            zlim=c(-0.6,0.6), col=pal(64))
-mtext("c)", cex=0.75, at=0, line=0.2)
-mtext("Tail dependence strength (upper-lower)", cex=0.7)
+mtext("f)", cex=0.75, at=0, line=0.2)
+mtext("Tail dependence strength (upper-lower)", cex=0.7, line=0.2)
 axis(side=1,at=axis.at, labels=axis.labels, las=2)
 axis(side=2,at=axis.at, labels=axis.labels2, las=2)
+
+
+par(mar=c(1.5,1.5,1.6,1.1))
+image(t(matrix(1:64)), xaxt="n", yaxt="n", col=pal(64))
+axis(2, at=seq(0,1,length.out=5),labels=seq(-0.6,0.6,length.out=5))
+image(t(matrix(1:64)), xaxt="n", yaxt="n", col=pal(64))
+axis(2, at=seq(0,1,length.out=5),labels=seq(-0.6,0.6,length.out=5))
+image(t(matrix(1:64)), xaxt="n", yaxt="n", col=pal(64))
+axis(2, at=seq(0,1,length.out=5),labels=seq(-0.6,0.6,length.out=5))
 
 dev.off()
 
 
-## Figure 3: Kelp synchrony map
+
+
+# png("./manuscript/fig3_matrices.png", width=3.2, height=8.5, units="in", res=300)
+# 
+# par(mfrow=c(3,1), mgp=c(2,0.5,0), mar=c(1.1,1.1,1.5,1.1), oma=c(6,1.5,0,0))
+# 
+# image.plot(1:361,1:361,cormat.ub.filt, xaxt="n", yaxt="n", legend.width=0.75, legend.mar=2.5, 
+#            zlim=c(-0.6,0.6), col=pal(64))
+# mtext("a)", cex=0.75, at=0, line=0.2)
+# mtext("Upper tail synchrony matrix", cex=0.7)
+# axis(side=1,at=axis.at, labels=axis.labels2)
+# axis(side=2,at=axis.at, labels=axis.labels2, las=2)
+# image.plot(1:361,1:361,cormat.lb.filt, xaxt="n", yaxt="n", legend.width=0.75, legend.mar=2.5, 
+#            zlim=c(-0.6,0.6), col=pal(64))
+# mtext("b)", cex=0.75, at=0, line=0.2)
+# mtext("Lower tail synchrony matrix", cex=0.7)
+# axis(side=1,at=axis.at, labels=axis.labels2)
+# axis(side=2,at=axis.at, labels=axis.labels2, las=2)
+# image.plot(1:361,1:361,cormat.diff.nodiag, xaxt="n", yaxt="n", legend.width=0.75, legend.mar=2.5, 
+#            zlim=c(-0.6,0.6), col=pal(64))
+# mtext("c)", cex=0.75, at=0, line=0.2)
+# mtext("Tail dependence strength (upper-lower)", cex=0.7)
+# axis(side=1,at=axis.at, labels=axis.labels, las=2)
+# axis(side=2,at=axis.at, labels=axis.labels2, las=2)
+# 
+# dev.off()
+
+
+## Figure 4: Kelp synchrony map
 
 #states<-readOGR("/Users/jonathanwalter/Documents/Research/DATA/Basemaps/tl_us_states_2000/tl_2009_us_state00.shp")
 #cali<-states[states$NAME00=="California",]

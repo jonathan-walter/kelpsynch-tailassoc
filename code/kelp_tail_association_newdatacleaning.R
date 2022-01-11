@@ -1130,7 +1130,7 @@ dev.off()
 #schematic 
 
 x <- seq(-6,6,by=0.1)
-S <- 1/(1 + exp(x))
+S <- 1/(1 + exp(-1.5*x))
 
 # source("./code/extremeTailDep.R")
 # np<-50
@@ -1146,8 +1146,26 @@ S <- 1/(1 + exp(x))
 ## find strongly tail dependent relationships
 
 find.strong <- cormat.diff.nodiag * ifelse(cormat.all > 0.5, 1, NA)
+head(sort(find.strong), 10)
+tail(sort(find.strong), 10)
+
+which(find.strong < -0.3, arr.ind = TRUE)
+which(find.strong > 0.3, arr.ind = TRUE)
+
+which(find.strong==max(find.strong, na.rm=T), arr.ind = TRUE)
 
 
+strong.waves <- kelpXwaves.diff * ifelse(kelpXwaves.all > 0.4, 1, NA)
+
+head(sort(strong.waves),10)
+tail(sort(strong.waves),10)
+
+which(strong.waves < -0.15)
+which(strong.waves > 0.15)
+
+
+
+## Make figures for manuscript
 
 png("./manuscript/fig6_calmnTailAssoc.png",units="in",res=300,height=6.5,width=6.5)
 
@@ -1165,16 +1183,16 @@ mtext("Mean wave height", line=2, cex=0.65)
 text(-4.5,-0.25,expression(paste(beta, "= -0.025, p = 0.001")), cex=1)
 text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.05*abs(diff(par("usr")[3:4])),"a)")
 
-plot(x, S, type="l", xaxt="n", yaxt="n", xlab="Wave calmness", ylab="Proportional kelp loss",
-     ylim=c(-0.2,1.2))
+plot(x, S, type="l", xaxt="n", yaxt="n", xlab="Wave calmness", ylab="Proportional kelp retention",
+     ylim=c(-0.22,1.22))
 axis(1, at=seq(min(x),max(x),length.out=5), labels=c("Low","","","","High"))
 axis(2, at=seq(0,1,length.out=5),labels=TRUE)
 axis(3, at=seq(min(x),max(x),length.out=5), labels=rev(c("Low","","","","High")))
-arrows(x0=-5, y0=1.05, x1=-1, y1=1.05, col="blue", length=0.03, angle=90, code=3, lwd=1.3)
-text(-3,1.16,"Wave exposed site:\neffects in upper tail",col="blue")
-text(3,-.16,"Calm site:\neffects in lower tail",col="red")
+arrows(x0=-5, y0=-0.035, x1=-1, y1=-0.035, col="blue", length=0.03, angle=90, code=3, lwd=1.3)
+text(-3,-.16,"Wave exposed site:\neffects in upper tail",col="blue")
+text(3,1.16,"Calm site:\neffects in lower tail",col="red")
 mtext("Wave height", line=2, cex=0.65)
-arrows(x0=1, y0=-0.05, x1=5, y1=-0.05, col="red", length=0.03, angle=90, code=3, lwd=1.3)
+arrows(x0=1, y0=1.035, x1=5, y1=1.035, col="red", length=0.03, angle=90, code=3, lwd=1.3)
 text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.05*abs(diff(par("usr")[3:4])),"b)")
 
 par(mar=c(3.1,3.1,1.25,1.1), mgp=c(2,0.8,0), cex.axis=0.9)
@@ -1204,3 +1222,35 @@ segments(x0=1995, x1=2002, y0=-1.6, y1=-1.6, col="darkgrey")
 text(x=2002, y=-1.6, "Synchronous crashes", pos=4, col="darkgrey")
 
 dev.off()
+
+
+
+##
+
+png("./manuscript/figSX_tailExamples.png",units="in",res=300,height=6.5,width=6.5)
+
+par(mfrow=c(2,2), mar=c(3.5,3.5,1.6,1.1), mgp=c(2,0.7,0))
+
+plot(rank(kelp[30,]), rank(kelp[28,]), xlab="Kelp biomass rank, site 30", 
+     ylab="Kelp biomass rank, site 28", pch=16) #this looks pretty good for lower tail dependence
+mtext("Lower tail dependence", cex=0.8, line=0.1)
+text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.05*abs(diff(par("usr")[3:4])),"a)")
+
+plot(rank(kelp[326,]), rank(kelp[330,]), xlab="Kelp biomass rank, site 326",
+     ylab="Kelp biomass rank, site 330", pch=16) #this looks OK for upper tail dependence
+mtext("Upper tail dependence", cex=0.8, line=0.1)
+text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.05*abs(diff(par("usr")[3:4])),"b)")
+
+plot(rank(-1*waves[245,]), rank(kelp[245,]), xlab="Wave calmess rank, site 245",
+     ylab="Kelp biomass rank, site 245", pch=16) #this looks pretty good for lower tail dependence
+mtext("Lower tail dependence", cex=0.8, line=0.1)
+text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.05*abs(diff(par("usr")[3:4])),"c)")
+
+plot(rank(-1*waves[44,]), rank(kelp[44,]), xlab="Wave calmness rank, site 44",
+     ylab="Kelp biomass rank, site 44", pch=16) #this looks OK for upper tail dependence
+mtext("Upper tail dependence", cex=0.8, line=0.1)
+text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.05*abs(diff(par("usr")[3:4])),"d)")
+
+dev.off()
+
+

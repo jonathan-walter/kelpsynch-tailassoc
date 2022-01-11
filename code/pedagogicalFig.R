@@ -3,11 +3,11 @@ library(mvtnorm)
 
 set.seed(11)
 
-rho <- 0.8
+rho <- 0.9
 np <- 500
 
 # for clayton : left tail dep.
-copC<-claytonCopula(3)
+copC<-claytonCopula(4)
 parC<-iRho(copC,rho=rho)
 
 # first generate Clayton copula 
@@ -28,7 +28,7 @@ par(mfrow=c(1,3), mar=c(3.1,3.1,1.6,1.1), mgp=c(1.5,1,0))
 plot(qnorm(mtc_l[,1]), qnorm(mtc_l[,2]), xaxt="n", yaxt="n",
      xlab="Population 1", ylab="Population 2", pch=16, cex=0.7)
 axis(1, labels=NA); axis(2, labels=NA)
-mtext("Left tail dependence", line=0.25, cex=0.8)
+mtext("Lower tail dependence", line=0.25, cex=0.8)
 text(par("usr")[1] + 0.05*diff(par("usr")[1:2]), 
      par("usr")[4] - 0.05*diff(par("usr")[3:4]), "a)")
 
@@ -42,7 +42,7 @@ text(par("usr")[1] + 0.05*diff(par("usr")[1:2]),
 plot(qnorm(mtc_r[,1]), qnorm(mtc_r[,2]), xaxt="n", yaxt="n",
      xlab="Population 1", ylab="Population 2", pch=16, cex=0.7)
 axis(1, labels=NA); axis(2, labels=NA)
-mtext("Right tail dependence", line=0.25, cex=0.8)
+mtext("Upper tail dependence", line=0.25, cex=0.8)
 text(par("usr")[1] + 0.05*diff(par("usr")[1:2]), 
      par("usr")[4] - 0.05*diff(par("usr")[3:4]), "c)")
 

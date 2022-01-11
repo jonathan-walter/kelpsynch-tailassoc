@@ -83,7 +83,7 @@ laymat[3,] <- rep(c(6,7),each=4)
 png("~/GitHub/kelpsynch-tailassoc/manuscript/fig2_theory_ar1.png", units="in", res=300, width=6.5, height=4.5)
 
 layout(laymat)
-par(mar=c(2.6,2.6,1.1,1.1), mgp=c(1,0.5,0))
+par(mar=c(2.3,2.3,1.1,1.1), mgp=c(1,0.5,0))
 
 #first panel
 plot(x, sigmoid(x,c), type="l", lwd=2, xlab = "Environmental driver", ylab="Population", ylim=c(-0.1,1.1),
@@ -97,16 +97,17 @@ arrows(x0=mu.reg2-1.96*sd.reg, y0=1.05, x1=mu.reg2+1.96*sd.reg, y1=1.05, col="re
 text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.05*abs(diff(par("usr")[3:4])),"a)")
 
 #second panel
-plot(rep(Et.1[(burn+1):tmax], each=2), Nt.1[,(burn+1):tmax], pch=16, col="blue", xlab="Environmental driver",
-     ylab="Population", xaxt="n", yaxt="n")
+plot(rep(Et.1[(burn+1):tmax], each=2), Nt.1[,(burn+1):tmax], pch=rep(c(16,1),times=length((burn+1):tmax)),
+     col="blue", xlab="Environmental driver", ylab="Population", xaxt="n", yaxt="n")
 axis(1, labels=FALSE)
 axis(2, labels=FALSE)
 text(par("usr")[1]+0.1*abs(diff(par("usr")[1:2])), par("usr")[4]-0.1*abs(diff(par("usr")[3:4])),"b)")
 mtext("Upper tail dependence", cex=0.6, line=0.1)
+legend("bottomright", pch=c(16,1), legend=c("Pop 1", "Pop 2"), bty="n", cex=0.8)
 
 #third panel
-plot(rep(Et.2[(burn+1):tmax], each=2), Nt.2[,(burn+1):tmax], pch=16, col="red", xlab="Environmental driver",
-     ylab="Population", xaxt="n", yaxt="n")
+plot(rep(Et.2[(burn+1):tmax], each=2), Nt.2[,(burn+1):tmax],  pch=rep(c(16,1),times=length((burn+1):tmax)),
+     col="red", xlab="Environmental driver", ylab="Population", xaxt="n", yaxt="n")
 axis(1, labels=FALSE)
 axis(2, labels=FALSE)
 text(par("usr")[1]+0.1*abs(diff(par("usr")[1:2])), par("usr")[4]-0.1*abs(diff(par("usr")[3:4])),"c)")

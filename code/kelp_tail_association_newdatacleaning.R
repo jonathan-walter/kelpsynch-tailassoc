@@ -1183,7 +1183,7 @@ mtext("Mean wave height", line=2, cex=0.65)
 text(-4.5,-0.25,expression(paste(beta, "= -0.025, p = 0.001")), cex=1)
 text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.05*abs(diff(par("usr")[3:4])),"a)")
 
-plot(x, S, type="l", xaxt="n", yaxt="n", xlab="Wave calmness", ylab="Proportional kelp retention",
+plot(x, S, type="l", xaxt="n", yaxt="n", xlab="Wave calmness", ylab="Proportional kelp abundance",
      ylim=c(-0.22,1.22))
 axis(1, at=seq(min(x),max(x),length.out=5), labels=c("Low","","","","High"))
 axis(2, at=seq(0,1,length.out=5),labels=TRUE)

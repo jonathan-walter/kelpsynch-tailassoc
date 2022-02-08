@@ -1231,25 +1231,27 @@ png("./manuscript/figSX_tailExamples.png",units="in",res=300,height=6.5,width=6.
 
 par(mfrow=c(2,2), mar=c(3.5,3.5,1.6,1.1), mgp=c(2,0.7,0))
 
-plot(rank(kelp[30,]), rank(kelp[28,]), xlab="Kelp biomass rank, site 30", 
-     ylab="Kelp biomass rank, site 28", pch=16) #this looks pretty good for lower tail dependence
-mtext("Lower tail dependence", cex=0.8, line=0.1)
+plot(rank(kelp[326,]), rank(kelp[330,]), xlab="Kelp biomass rank, site 326",
+     ylab="Kelp biomass rank, site 330", pch=16, col="blue") #this looks OK for upper tail dependence
+mtext("Upper tail dependence", cex=0.8, line=0.1)
 text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.05*abs(diff(par("usr")[3:4])),"a)")
 
-plot(rank(kelp[326,]), rank(kelp[330,]), xlab="Kelp biomass rank, site 326",
-     ylab="Kelp biomass rank, site 330", pch=16) #this looks OK for upper tail dependence
-mtext("Upper tail dependence", cex=0.8, line=0.1)
+plot(rank(kelp[30,]), rank(kelp[28,]), xlab="Kelp biomass rank, site 30", 
+     ylab="Kelp biomass rank, site 28", pch=16, col="red") #this looks pretty good for lower tail dependence
+mtext("Lower tail dependence", cex=0.8, line=0.1)
 text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.05*abs(diff(par("usr")[3:4])),"b)")
 
-plot(rank(-1*waves[245,]), rank(kelp[245,]), xlab="Wave calmess rank, site 245",
-     ylab="Kelp biomass rank, site 245", pch=16) #this looks pretty good for lower tail dependence
-mtext("Lower tail dependence", cex=0.8, line=0.1)
+plot(rank(-1*waves[44,]), rank(kelp[44,]), xlab="Wave calmness rank, site 44",
+     ylab="Kelp biomass rank, site 44", pch=16, col="blue") #this looks OK for upper tail dependence
+mtext("Upper tail dependence", cex=0.8, line=0.1)
 text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.05*abs(diff(par("usr")[3:4])),"c)")
 
-plot(rank(-1*waves[44,]), rank(kelp[44,]), xlab="Wave calmness rank, site 44",
-     ylab="Kelp biomass rank, site 44", pch=16) #this looks OK for upper tail dependence
-mtext("Upper tail dependence", cex=0.8, line=0.1)
+plot(rank(-1*waves[245,]), rank(kelp[245,]), xlab="Wave calmess rank, site 245",
+     ylab="Kelp biomass rank, site 245", pch=16, col="red") #this looks pretty good for lower tail dependence
+mtext("Lower tail dependence", cex=0.8, line=0.1)
 text(par("usr")[1]+0.05*abs(diff(par("usr")[1:2])), par("usr")[4]-0.05*abs(diff(par("usr")[3:4])),"d)")
+
+
 
 dev.off()
 
